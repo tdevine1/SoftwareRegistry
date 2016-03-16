@@ -47,10 +47,10 @@
             android:layout_row="0"
             android:layout_column="0" />
 
-        <Spinner
+        <AutoCompleteTextView
             android:layout_width="210dp"
             android:layout_height="wrap_content"
-            android:id="@+id/softwareSpinner"
+            android:id="@+id/softwareAutoComplete"
             android:layout_row="1"
             android:layout_column="0" />
 
@@ -61,7 +61,8 @@
             android:text="Search"
             android:id="@+id/softwareButton"
             android:layout_row="1"
-            android:layout_column="1" />
+            android:layout_column="1"
+            android:onClick="softwareButtonClicked" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -78,15 +79,6 @@
             android:id="@+id/buildingSpinner"
             android:layout_row="3"
             android:layout_column="0" />
-
-        <Button
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Search"
-            android:id="@+id/buildingButton"
-            android:layout_row="3"
-            android:layout_column="1" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -109,9 +101,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Search"
-            android:id="@+id/roomButton"
+            android:id="@+id/building_roomButton"
             android:layout_row="5"
-            android:layout_column="1" />
+            android:layout_column="1"
+            android:onClick="building_roomButtonClicked" />
 
         <Button
             android:layout_width="wrap_content"
@@ -119,7 +112,8 @@
             android:text="Submit Update Request"
             android:id="@+id/updateRequestButton"
             android:layout_row="6"
-            android:layout_column="0" />
+            android:layout_column="0"
+            android:onClick="updateRequestButtonClicked" />
 
     </GridLayout>
 

@@ -3,11 +3,10 @@
     package="edu.fairmontstate.softwarefinder">
 
     <supports-screens
-        android:smallScreens="true"
-        android:normalScreens="true"
-        android:largeScreens= "true"
         android:anyDensity="true"
-        />
+        android:largeScreens="true"
+        android:normalScreens="true"
+        android:smallScreens="true" />
 
     <application
         android:allowBackup="true"
@@ -24,6 +23,33 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".SoftwareActivity"
+            android:label="@string/title_activity_software"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="edu.fairmontstate.softwarefinder.MainActivity" />
+        </activity>
+        <activity
+            android:name=".LocationActivity"
+            android:label="@string/title_activity_location"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="edu.fairmontstate.softwarefinder.MainActivity" />
+        </activity>
+        <activity
+            android:name=".RequestFormActivity"
+            android:label="@string/title_activity_request_form"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="edu.fairmontstate.softwarefinder.MainActivity" />
         </activity>
     </application>
 

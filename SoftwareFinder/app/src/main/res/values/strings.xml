@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">SoftwareFinder</string>
     <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_software">SoftwareActivity</string>
+    <string name="title_activity_location">LocationActivity</string>
+    <string name="title_activity_request_form">RequestFormActivity</string>
 </resources>
