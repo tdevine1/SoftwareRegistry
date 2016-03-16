@@ -7,6 +7,7 @@ package edu.fairmontstate.softwarefinder;
 import android.app.Activity;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -46,6 +47,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         requestButton.setEnabled(false);
 
         softwareView = (AutoCompleteTextView)this.findViewById(R.id.softwareAutoComplete);
+        softwareView.setInputType(InputType.TYPE_CLASS_TEXT);
         buildingSpinner = (Spinner)this.findViewById(R.id.buildingSpinner);
         roomSpinner = (Spinner)this.findViewById(R.id.roomSpinner);
 
@@ -160,7 +162,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         fieldItem = softwareView.getText().toString().trim();
         while (!found && index < softwareAdapter.getCount()) {
             listItem = softwareAdapter.getItem(index).trim();
-            if (fieldItem.equals(listItem)) {
+            if (fieldItem.toUpperCase().equals(listItem.toUpperCase())) {
                 searchSoftwareButton.setEnabled(true);
                 requestButton.setEnabled(true);
                 found = true;
