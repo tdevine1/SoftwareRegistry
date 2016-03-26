@@ -23,7 +23,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/imageView"
-            android:src="@drawable/ic_launcher"
+            android:src="@drawable/fsu_logo"
             android:layout_gravity="top" />
 
     </FrameLayout>
