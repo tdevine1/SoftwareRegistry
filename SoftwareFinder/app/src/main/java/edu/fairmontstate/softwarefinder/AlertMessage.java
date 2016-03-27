@@ -1,3 +1,6 @@
+/* Simple class that displays an alert message
+ * depending on the action taken.
+ */
 package edu.fairmontstate.softwarefinder;
 
 import android.app.AlertDialog;
@@ -6,9 +9,6 @@ import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
 
-/* Simple class that displays an alert message
- * depending on the action taken.
- */
 public class AlertMessage extends DialogFragment {
     String title;
     String message;
@@ -16,11 +16,11 @@ public class AlertMessage extends DialogFragment {
     public AlertMessage() {
         title = "";
         message = "";
-    } // end default constructor AlertDialog
+    } // end default constructor AlertMessage().
     public AlertMessage(String title, String message) {
         this.title = title;
         this.message = message;
-    }
+    } // end constructor AlertMessage().
     //================================================================================================================================
     @Override
     public Dialog onCreateDialog(Bundle savedInstance) {
@@ -33,5 +33,5 @@ public class AlertMessage extends DialogFragment {
             }
         });
         return builder.create();
-    }
-}
+    } // end method onCreateDialog().
+} // end class AlertMessage.
