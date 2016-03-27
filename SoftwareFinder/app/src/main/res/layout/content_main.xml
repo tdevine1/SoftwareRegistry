@@ -26,95 +26,103 @@
             android:src="@drawable/fsu_logo"
             android:layout_gravity="top" />
 
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/gridLayout"
+            android:layout_gravity="center_horizontal|bottom"
+            android:layout_marginBottom="55dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="Software"
+                android:id="@+id/softwareLabel"
+                android:layout_row="0"
+                android:layout_column="0" />
+
+            <AutoCompleteTextView
+                android:layout_width="210dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/softwareAutoComplete"
+                android:layout_row="1"
+                android:layout_column="0" />
+
+            <Button
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Search"
+                android:id="@+id/softwareButton"
+                android:layout_row="1"
+                android:layout_column="1"
+                android:onClick="softwareButtonClicked" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="Building"
+                android:id="@+id/buildingLabel"
+                android:layout_row="2"
+                android:layout_column="0" />
+
+            <Spinner
+                android:layout_width="210dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/buildingSpinner"
+                android:layout_row="3"
+                android:layout_column="0" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="Room #"
+                android:id="@+id/roomLabel"
+                android:layout_row="4"
+                android:layout_column="0" />
+
+            <Spinner
+                android:layout_width="210dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/roomSpinner"
+                android:layout_row="5"
+                android:layout_column="0" />
+
+            <Button
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Search"
+                android:id="@+id/building_roomButton"
+                android:layout_row="5"
+                android:layout_column="1"
+                android:onClick="building_roomButtonClicked" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Submit Update Request"
+                android:id="@+id/updateRequestButton"
+                android:layout_row="6"
+                android:layout_column="0"
+                android:onClick="updateRequestButtonClicked" />
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Request History"
+                android:id="@+id/requestHistoryButton"
+                android:layout_row="6"
+                android:layout_column="1"
+                android:onClick="viewRequestHistory" />
+
+        </GridLayout>
+
     </FrameLayout>
-
-    <GridLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/gridLayout"
-        android:layout_gravity="center_horizontal|bottom"
-        android:layout_marginBottom="55dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="Software"
-            android:id="@+id/softwareLabel"
-            android:layout_row="0"
-            android:layout_column="0" />
-
-        <AutoCompleteTextView
-            android:layout_width="210dp"
-            android:layout_height="wrap_content"
-            android:id="@+id/softwareAutoComplete"
-            android:layout_row="1"
-            android:layout_column="0" />
-
-        <Button
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Search"
-            android:id="@+id/softwareButton"
-            android:layout_row="1"
-            android:layout_column="1"
-            android:onClick="softwareButtonClicked" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="Building"
-            android:id="@+id/buildingLabel"
-            android:layout_row="2"
-            android:layout_column="0" />
-
-        <Spinner
-            android:layout_width="210dp"
-            android:layout_height="wrap_content"
-            android:id="@+id/buildingSpinner"
-            android:layout_row="3"
-            android:layout_column="0" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="Room #"
-            android:id="@+id/roomLabel"
-            android:layout_row="4"
-            android:layout_column="0" />
-
-        <Spinner
-            android:layout_width="210dp"
-            android:layout_height="wrap_content"
-            android:id="@+id/roomSpinner"
-            android:layout_row="5"
-            android:layout_column="0" />
-
-        <Button
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Search"
-            android:id="@+id/building_roomButton"
-            android:layout_row="5"
-            android:layout_column="1"
-            android:onClick="building_roomButtonClicked" />
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Submit Update Request"
-            android:id="@+id/updateRequestButton"
-            android:layout_row="6"
-            android:layout_column="0"
-            android:onClick="updateRequestButtonClicked" />
-
-    </GridLayout>
 
 </RelativeLayout>

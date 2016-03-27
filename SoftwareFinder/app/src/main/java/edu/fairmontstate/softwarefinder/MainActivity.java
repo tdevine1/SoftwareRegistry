@@ -1,6 +1,7 @@
 /* The main GUI when the application starts up.
  * Allows the selection of particular software to be found as well as a particular location.
- * Allows the option of submitting an update request form to the IT department of FSU for the particular software.
+ * Allows the option of submitting an update request form to the IT department of FSU for the particular software,
+ * as well as allowing the user to view their request history.
  */
 package edu.fairmontstate.softwarefinder;
 
@@ -11,27 +12,17 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
-import android.widget.Button;
-import android.widget.Spinner;
+import android.widget.*;
 import android.view.View;
 import android.content.Intent;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.StreamCorruptedException;
+import java.io.*;
 import java.util.*;
 
 public class MainActivity extends Activity implements AdapterView.OnItemSelectedListener, TextWatcher {
     Button searchSoftwareButton;
     Button searchBuilding_RoomButton;
     Button requestButton;
+    Button requestHistoryButton;
     AutoCompleteTextView softwareView;
     Spinner buildingSpinner;
     Spinner roomSpinner;
@@ -44,9 +35,9 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
     public static final String SOFTWARE_MSG = "edu.fairmontstate.softwarefinder.SOFTWARE_MSG";
     public static final String BUILDING_MSG = "edu.fairmontstate.softwarefinder.BUILDING_MSG";
     public static final String ROOM_MSG = "edu.fairmontstate.softwarefinder.ROOM_MSG";
-    HashMap<String, List<String>> softwareMap;
-    HashMap<String, List<String>> buildingMap;
-    HashMap<String, List<String>> roomMap;
+    public static final String REQUEST_MSG = "edu.fairmontstate.softwarefinder.REQUEST_MSG";
+    SoftwarePoint softwarePoint;
+    Vector<SoftwarePoint> requestList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +47,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         searchSoftwareButton = (Button)this.findViewById(R.id.softwareButton);
         searchBuilding_RoomButton = (Button)this.findViewById(R.id.building_roomButton);
         requestButton = (Button)this.findViewById(R.id.updateRequestButton);
+        requestHistoryButton = (Button)this.findViewById(R.id.requestHistoryButton);
 
         searchSoftwareButton.setEnabled(false);
         requestButton.setEnabled(false);
@@ -72,7 +64,6 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         populateAutoCompleteField();
         populateBuildingSpinner();
         populateRoomSpinner();
-
     } // end method onCreate().
 //================================================================================================================================
     // Method that populates the softwareSpinner with data.
@@ -138,17 +129,16 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         startActivity(intent);
     } // end method building_roomButtonClicked().
 //================================================================================================================================
-    // Method that invokes the RequestFormActivity when the submit update request button is clicked.
-    /* Uses a map that stores the key value pairs of the software and building/room.
-     * Stores the map in a file native to the Android device, and will check whether the data is already contained in the file.
+    /* Method that uses a SoftwarePoint object that stores the values of the software and building/room.
+     * Stores the object in a file native to the Android device, and will check whether the data is already contained in the file.
      */
-    public void updateRequestButtonClicked(View v) {
-        //Intent intent;
+    public void updateRequestButtonClicked(View v) throws IOException, ClassNotFoundException{
         DialogFragment dialog;
 
         propertyFile = new File(getFilesDir(), "info.txt");
         if (propertyFile.length() > 0) {
-            if (!checkIfAlreadySubmitted()) {
+            readFile();
+            if (!alreadySubmitted()) {
                 writeSubmissionToFile();
                 dialog = new AlertMessage("Thank you!", "Thank you for submitting your update request form!" +
                                                         " Your request will be approved by the IT Dept. for further review.");
@@ -158,7 +148,6 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
                 dialog = new AlertMessage("Already submitted.", "Your update request has already been submitted to the IT Dept.");
                 dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
             }
-
         }
         else {
             writeSubmissionToFile();
@@ -166,115 +155,101 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
                     " Your request will be approved by the IT Dept. for further review.");
             dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
         }
-        //intent = new Intent(this, RequestFormActivity.class);         // Will use intent if more fields need to be populated
-        //intent.setAction(Intent.ACTION_SEND);
-        //intent.putExtra(SOFTWARE_MSG, selectedSoftware);
-        //intent.putExtra(BUILDING_MSG, selectedBuildingItem);
-        //intent.putExtra(ROOM_MSG, selectedRoomItem);
-        //intent.setType("text/plain");
-        //startActivity(intent);
+        //propertyFile.delete();
     } // end method updateRequestButtonClicked().
 //================================================================================================================================
-    // Method that reads from the file and checks whether or not the software/building/room# request is already in the file.
+    // Method that invokes the ViewRequestActivity when the view request button is clicked.
+    public void viewRequestHistory(View v) throws IOException, ClassNotFoundException {
+        Intent intent;
+        DialogFragment dialog;
+
+        intent = new Intent(this, ViewRequestActivity.class);
+        intent.setAction(Intent.ACTION_SEND);
+
+        propertyFile = new File(getFilesDir(), "info.txt");
+        if (propertyFile.length() > 0) {
+            readFile();
+            intent.putExtra(REQUEST_MSG, requestList);
+            intent.setType("text/plain");
+            startActivity(intent);
+        }
+        else {
+            dialog = new AlertMessage("No Request History", "You don't have a history of requests.");
+            dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
+        }
+    } // end method viewRequestHistory().
+//================================================================================================================================
+    // Method that reads from the file and stores the data into the request list.
     @SuppressWarnings("unchecked")
-    public boolean checkIfAlreadySubmitted() {
-        boolean submitted = false;
+    public void readFile() throws IOException, ClassNotFoundException {
         FileInputStream fis;
         ObjectInputStream ois;
-        List<String> softwareList;
-        List<String> buildingList;
-        List<String> roomList;
+        requestList = new Vector<SoftwarePoint>();
 
+        fis = openFileInput(propertyFile.getName());
+        ois = new ObjectInputStream(fis);
         try {
-            //fis = new FileInputStream(propertyFile);
-            fis = openFileInput(propertyFile.getName());
-            ois = new ObjectInputStream(fis);
-            softwareMap = (HashMap<String, List<String>>) ois.readObject();
-            buildingMap = (HashMap<String, List<String>>) ois.readObject();
-            roomMap = (HashMap<String, List<String>>) ois.readObject();
+            while (true) {
+                softwarePoint = (SoftwarePoint)ois.readObject();
+                requestList.addElement(softwarePoint);
+            }
+        }
+        catch (EOFException eof) {
+            // end of file reached, data has been populated accordingly.
+        }
+        finally {
             ois.close();
+        }
+    } // end method readFile().
+//================================================================================================================================
+    // Method that checks whether or not the software/building/room# request is already in the file.
+    @SuppressWarnings("unchecked")
+    public boolean alreadySubmitted() {
+        String softwareName;
+        String buildingName;
+        String roomNumber;
 
-            softwareList = softwareMap.get("Software");
-            buildingList = buildingMap.get("Building");
-            roomList = roomMap.get("Room");
+        softwareName = softwareView.getText().toString().trim();
+        buildingName = selectedBuildingItem.trim();
+        roomNumber = selectedRoomItem.trim();
 
-
-            if (softwareList.contains(softwareView.getText().toString().trim()) && buildingList.contains(selectedBuildingItem) && roomList.contains(selectedRoomItem)) {
-                submitted = true;
+        for (SoftwarePoint s : requestList) {
+            if (s.getSoftwareName().equals(softwareName) && s.getBuildingName().equals(buildingName) && s.getRoomNumber().equals(roomNumber)) {
+                return true;
             }
-            else {
-                submitted = false;
-            }
-
         }
-        catch (FileNotFoundException fne) {
-            fne.printStackTrace();
-        }
-        catch (StreamCorruptedException sce) {
-            sce.printStackTrace();
-        }
-        catch (ClassNotFoundException cnfe) {
-            cnfe.printStackTrace();
-        }
-        catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
-        return submitted;
+        return false;
     } // end method checkIfAlreadySubmitted().
 //================================================================================================================================
-    // Method that stores the field data in the appropriate hashmap and stores the hashmap to the file.
-    public void writeSubmissionToFile() {
-        List<String> softwareList;
-        List<String> buildingList;
-        List<String> roomList;
-        String softwareKey = "Software";
-        String buildingKey = "Building";
-        String roomKey = "Room";
+    // Method that stores the field data in the appropriate SoftwarePoint and stores the SoftwarePoint to the file.
+    public void writeSubmissionToFile() throws IOException {
         FileOutputStream fos;
+        SoftwareOutputStream sos;
         ObjectOutputStream oos;
+        String softwareName;
+        String buildingName;
+        String roomNumber;
 
-        softwareMap = new HashMap<String, List<String>>();
-        buildingMap = new HashMap<String, List<String>>();
-        roomMap = new HashMap<String, List<String>>();
+        softwarePoint = new SoftwarePoint();
+        softwareName = softwareView.getText().toString().trim();
+        buildingName = selectedBuildingItem.trim();
+        roomNumber = selectedRoomItem.trim();
 
-        softwareList = softwareMap.get(softwareKey);
-        buildingList = buildingMap.get(buildingKey);
-        roomList = roomMap.get(roomKey);
+        softwarePoint.setSoftwareName(softwareName);
+        softwarePoint.setBuildingName(buildingName);
+        softwarePoint.setRoomNumber(roomNumber);
 
-        if (softwareList == null) {
-            softwareList = new ArrayList<String>();
-            softwareMap.put(softwareKey, softwareList);
+        fos = openFileOutput(propertyFile.getName(), Context.MODE_APPEND);
+        if (propertyFile.length() > 0) {
+            sos = new SoftwareOutputStream(fos);
+            sos.writeObject(softwarePoint);
+            sos.close();
         }
-        if (buildingList == null) {
-            buildingList = new ArrayList<String>();
-            buildingMap.put(buildingKey, buildingList);
-        }
-        if (roomList == null) {
-            roomList = new ArrayList<String>();
-            roomMap.put(roomKey, roomList);
-        }
-
-        softwareList.add(softwareView.getText().toString().trim());
-        buildingList.add(selectedBuildingItem);
-        roomList.add(selectedRoomItem);
-        try {
-            fos = openFileOutput(propertyFile.getName(), Context.MODE_PRIVATE);
+        else {
             oos = new ObjectOutputStream(fos);
-            oos.writeObject(softwareMap);
-            oos.writeObject(buildingMap);
-            oos.writeObject(roomMap);
+            oos.writeObject(softwarePoint);
             oos.close();
         }
-        catch (FileNotFoundException fne) {
-            fne.printStackTrace();
-        }
-        catch (StreamCorruptedException sce) {
-            sce.printStackTrace();
-        }
-        catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
-
     } // end method writeSubmissionToFile().
 //================================================================================================================================
     // Method that listens for items selected in any of the spinners.
