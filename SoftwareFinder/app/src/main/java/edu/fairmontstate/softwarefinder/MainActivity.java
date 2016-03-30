@@ -50,7 +50,6 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         requestHistoryButton = (Button)this.findViewById(R.id.requestHistoryButton);
 
         searchSoftwareButton.setEnabled(false);
-        requestButton.setEnabled(false);
 
         softwareView = (AutoCompleteTextView)this.findViewById(R.id.softwareAutoComplete);
         softwareView.setInputType(InputType.TYPE_CLASS_TEXT);
@@ -277,12 +276,10 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
             listItem = softwareAdapter.getItem(index).trim();
             if (fieldItem.toUpperCase().equals(listItem.toUpperCase())) {
                 searchSoftwareButton.setEnabled(true);
-                requestButton.setEnabled(true);
                 found = true;
             }
             else {
                 searchSoftwareButton.setEnabled(false);
-                requestButton.setEnabled(false);
                 index++;
             }
         }

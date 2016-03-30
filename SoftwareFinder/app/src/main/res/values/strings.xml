@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">SoftwareFinder</string>
+    <string name="app_name">Software Finder</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="title_activity_software">SoftwareActivity</string>
     <string name="title_activity_location">LocationActivity</string>
