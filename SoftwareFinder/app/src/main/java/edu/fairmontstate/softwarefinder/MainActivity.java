@@ -8,17 +8,24 @@ package edu.fairmontstate.softwarefinder;
 import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.*;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
+import android.view.WindowManager;
 import android.widget.*;
 import android.view.View;
 import android.content.Intent;
+import android.widget.Toolbar;
+
 import java.io.*;
 import java.util.*;
 
-public class MainActivity extends Activity implements AdapterView.OnItemSelectedListener, TextWatcher {
+public class MainActivity extends ActionBarActivity implements AdapterView.OnItemSelectedListener, TextWatcher {
+    android.support.v7.widget.Toolbar toolbar;
     Button searchSoftwareButton;
     Button searchBuilding_RoomButton;
     Button requestButton;
@@ -43,6 +50,11 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState); // Initialize the activity.
         setContentView(R.layout.activity_main); // Set the activity content from the activity_main layout resource.
+
+        toolbar = (android.support.v7.widget.Toolbar)findViewById(R.id.toolbar);
+        toolbar.setTitle("Software Finder");
+        toolbar.setTitleTextColor(Color.WHITE);
+        setSupportActionBar(toolbar);
 
         searchSoftwareButton = (Button)this.findViewById(R.id.softwareButton);
         searchBuilding_RoomButton = (Button)this.findViewById(R.id.building_roomButton);
@@ -82,6 +94,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
     public void populateBuildingSpinner() {
         Vector<String> itemList = new Vector<String>();
 
+        itemList.addElement("<Select Building>");
         itemList.addElement("Engineering & Technology Building");   // test data.
         itemList.addElement("Library");
         itemList.addElement("Falcon Center");
@@ -94,6 +107,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
     public void populateRoomSpinner() {
         Vector<String> itemList = new Vector<String>();
 
+        itemList.addElement("<Select Room#>");
         itemList.addElement("110");     // test data.
         itemList.addElement("213");
         itemList.addElement("302");
@@ -135,23 +149,27 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         DialogFragment dialog;
 
         propertyFile = new File(getFilesDir(), "info.txt");
-        if (propertyFile.length() > 0) {
-            readFile();
-            if (!alreadySubmitted()) {
+        if (!fieldsComplete()) {
+            if (propertyFile.length() > 0) {
+                readFile();
+                if (!alreadySubmitted()) {
+                    writeSubmissionToFile();
+                    dialog = new AlertMessage("Thank you!", "Thank you for submitting your update request form!" +
+                            " Your request will be approved by the IT Dept. for further review.");
+                    dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
+                } else {
+                    dialog = new AlertMessage("Already submitted.", "Your update request has already been submitted to the IT Dept.");
+                    dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
+                }
+            } else {
                 writeSubmissionToFile();
                 dialog = new AlertMessage("Thank you!", "Thank you for submitting your update request form!" +
-                                                        " Your request will be approved by the IT Dept. for further review.");
-                dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
-            }
-            else {
-                dialog = new AlertMessage("Already submitted.", "Your update request has already been submitted to the IT Dept.");
+                        " Your request will be approved by the IT Dept. for further review.");
                 dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
             }
         }
         else {
-            writeSubmissionToFile();
-            dialog = new AlertMessage("Thank you!", "Thank you for submitting your update request form!" +
-                    " Your request will be approved by the IT Dept. for further review.");
+            dialog = new AlertMessage("Fields incomplete.", "All fields must have a value before submitting a request.");
             dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
         }
         //propertyFile.delete();
@@ -200,6 +218,15 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
             ois.close();
         }
     } // end method readFile().
+//================================================================================================================================
+    // Method that checks whether or not the fields are completely filled so that a request can be submitted.
+    public boolean fieldsComplete() {
+
+        if (!softwareView.getText().toString().equals("") && !selectedBuildingItem.equals("<Select Building>") && !selectedRoomItem.equals("<Select Room#>"))
+            return false;
+        else
+            return true;
+    } // end method isValidRequest().
 //================================================================================================================================
     // Method that checks whether or not the software/building/room# request is already in the file.
     @SuppressWarnings("unchecked")
