@@ -48,7 +48,7 @@ public class ViewRequestActivity extends ActionBarActivity {
         values = new String[requestList.size()];
 
         for (int i = 0; i < values.length; i++) {
-            values[i] = requestList.get(i).getSoftwareName() + '\n' + requestList.get(i).getBuildingName() + " " + requestList.get(i).getRoomNumber();
+            values[i] = requestList.get(i).getSoftwareName() + '\n' + requestList.get(i).getRoomNumber() + " " + requestList.get(i).getBuildingName();
         }
 
         arrayAdapter = new ArrayAdapter<String>(this, R.layout.custom_list_view, values);
