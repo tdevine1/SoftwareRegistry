@@ -5,6 +5,7 @@
  */
 package edu.fairmontstate.softwarefinder;
 
+import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.graphics.Color;
@@ -77,8 +78,8 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     public void populateAutoCompleteField() {
         Vector<String> itemList = new Vector<String>();
 
-        itemList.addElement("Microsoft Office 2011");   // test data.
-        itemList.addElement("Microsoft Office 2013");
+        itemList.addElement("Microsoft Office 2007");   // test data.
+        itemList.addElement("Microsoft Office 2010");
         itemList.addElement("Visual Studio 2008");
         itemList.addElement("Adobe Reader");
 
@@ -129,13 +130,20 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     // Method that invokes the LocationActivity when the search building & room button is clicked.
     public void building_roomButtonClicked(View v) {
         Intent intent;
+        DialogFragment dialog;
 
-        intent = new Intent(this, LocationActivity.class);
-        intent.setAction(Intent.ACTION_SEND);
-        intent.putExtra(BUILDING_MSG, selectedBuildingItem);
-        intent.putExtra(ROOM_MSG, selectedRoomItem);
-        intent.setType("text/plain");
-        startActivity(intent);
+        if (selectedBuildingItem.equals("<Select Building>") || selectedRoomItem.equals("<Select Room#>")) {
+            dialog = new AlertMessage("No location selected", "Please select a valid loction");
+            dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
+        }
+        else {
+            intent = new Intent(this, LocationActivity.class);
+            intent.setAction(Intent.ACTION_SEND);
+            intent.putExtra(BUILDING_MSG, selectedBuildingItem);
+            intent.putExtra(ROOM_MSG, selectedRoomItem);
+            intent.setType("text/plain");
+            startActivity(intent);
+        }
     } // end method building_roomButtonClicked().
 //================================================================================================================================
     /* Method that uses a SoftwarePoint object that stores the values of the software and building/room.

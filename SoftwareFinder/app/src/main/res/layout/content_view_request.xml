@@ -29,11 +29,10 @@
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:text="Request History"
-            android:textSize="30sp"
             android:id="@+id/titleView"
             android:layout_gravity="center_horizontal"
             android:layout_row="0"
-            android:layout_column="2"/>
+            android:layout_column="2" />
     </GridLayout>
 
 </RelativeLayout>
