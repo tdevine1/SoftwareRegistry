@@ -5,7 +5,6 @@
  */
 package edu.fairmontstate.softwarefinder;
 
-import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.graphics.Color;
