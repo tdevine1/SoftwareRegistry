@@ -3,10 +3,14 @@ import javax.swing.table.*;
 
 public class MyTableModel extends AbstractTableModel{
 	DefaultListModel<Data> dlm;
-	String[] columnNames = {"Software", "Building", "Room"};
+	String[] columnNames;
 	
-	MyTableModel(DefaultListModel dlm){
+	MyTableModel(DefaultListModel dlm, String []columnHeader){
 		this.dlm = dlm;
+		columnNames = new String[columnHeader.length];
+		for(int i = 0; i < columnHeader.length; i++){
+			columnNames[i] =  columnHeader[i];
+		}
 	}//***************************************************************************************
 	@Override
 	public int getRowCount(){
@@ -14,7 +18,7 @@ public class MyTableModel extends AbstractTableModel{
 	}//***************************************************************************************
 	@Override
 	public int getColumnCount(){
-		return 3;
+		return columnNames.length;
 	}
 	@Override 
     public String getColumnName(int index) { 
@@ -28,26 +32,26 @@ public class MyTableModel extends AbstractTableModel{
 	public Object getValueAt(int row, int col){
 		Data d;
 		d = dlm.elementAt(row);
-		if(col == 0)
-			return d.fromString;
-		else if(col == 1)
-			return d.subjectString;
-		else
-			return d.dateString;
-		
+		return d.dataString[col];
 	}//***************************************************************************************
+	public void setValueAt(Data value, int row, int col){
+		dlm.addElement(value);
+	}
+	public int getSelectedRow() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }//***************************************************************************************
 class Data{
-	String fromString;
-	String subjectString;
-	String dateString;
+	String[] dataString;
 	/*
 	 * Pull the request from database and the database
 	 */
 	
-	Data(String fromString, String subjectString, String dataString){
-		this.fromString = fromString;
-		this.subjectString = subjectString;
-		this.dateString = dataString;
+	Data(String[] dataString){
+		this.dataString = new String[dataString.length];
+		for(int i = 0; i < dataString.length; i++){
+			this.dataString[i] =  dataString[i];
+		}
 	}//***************************************************************************************
 }//***************************************************************************************

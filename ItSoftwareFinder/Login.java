@@ -81,8 +81,8 @@ public class Login extends JDialog implements ActionListener, DocumentListener {
 		tk = Toolkit.getDefaultToolkit();
 		d = tk.getScreenSize();
 		setTitle("Login");
-		setMinimumSize(new Dimension(300,150));
-		setMaximumSize(new Dimension(300,150));
+		setMinimumSize(new Dimension(300,200));
+		setMaximumSize(new Dimension(300,200));
 		setLocation(d.width/4,d.height/4);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
@@ -118,7 +118,6 @@ public class Login extends JDialog implements ActionListener, DocumentListener {
 			processLoginButton();
 		else if(e.getSource() == cancelButton){
 			this.dispose();
-			frame.dispose();
 		}
 	}//***************************************************************************************
 	public void changedUpdate(DocumentEvent arg0) {
