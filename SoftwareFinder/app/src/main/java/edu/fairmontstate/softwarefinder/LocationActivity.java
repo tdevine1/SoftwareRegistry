@@ -67,7 +67,7 @@ public class LocationActivity extends ActionBarActivity {
         arrayAdapter = new ArrayAdapter<String>(this, R.layout.custom_list_view, softwareList);
         textView = (TextView)findViewById(R.id.titleViewLocation);
         listView = (ListView)findViewById(R.id.listViewLocation);
-        textView.setText("Software in Location " +  ":" + buildingItem + " " + roomItem);
+        textView.setText("Software in Location" +  ": " + buildingItem + " " + roomItem);
         listView.setAdapter(arrayAdapter);
     } // end method onCreate().
 } // end class LocationActivity.
