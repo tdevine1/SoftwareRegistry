@@ -14,11 +14,11 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener {
 	DefaultListModel databaseListModel;
 	MyTableModel databaseModel;
 	JScrollPane databaseJSPane;
-	JTable databaseList;
+	JTable databaseTable;
 	DefaultListModel requestListModel;
 	MyTableModel requestModel;
 	JScrollPane requestJSPane;
-	JTable requestList;
+	JTable requestTable;
 	JPanel topPanel;
 	JPanel bottomPanel;
 	JPanel buttonPanel;
@@ -125,12 +125,12 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener {
 		
 		requestListModel = new DefaultListModel();
 		requestModel = new MyTableModel(requestListModel, requestColumns);
-		requestList = new JTable(requestModel);
-		requestList.setVisible(true);
-		requestList.getTableHeader().setReorderingAllowed(false);
-		requestList.setPreferredScrollableViewportSize(new Dimension(700,500));
-		requestList.setFillsViewportHeight(true);
-		requestJSPane = new JScrollPane(requestList);
+		requestTable = new JTable(requestModel);
+		requestTable.setVisible(true);
+		requestTable.getTableHeader().setReorderingAllowed(false);
+		requestTable.setPreferredScrollableViewportSize(new Dimension(700,500));
+		requestTable.setFillsViewportHeight(true);
+		requestJSPane = new JScrollPane(requestTable);
 		gbc.gridx = 0;
 		gbc.gridy = 0;
 		gbc.gridwidth = 1;
@@ -148,12 +148,12 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener {
 		
 		databaseListModel = new DefaultListModel();
 		databaseModel = new MyTableModel(databaseListModel, databaseColumns);
-		databaseList = new JTable(databaseModel);
-		databaseList.setVisible(true);
-		databaseList.getTableHeader().setReorderingAllowed(false);
-		databaseList.setPreferredScrollableViewportSize(new Dimension(700,500));
-		databaseList.setFillsViewportHeight(true);
-		databaseJSPane = new JScrollPane(databaseList);
+		databaseTable = new JTable(databaseModel);
+		databaseTable.setVisible(true);
+		databaseTable.getTableHeader().setReorderingAllowed(false);
+		databaseTable.setPreferredScrollableViewportSize(new Dimension(700,500));
+		databaseTable.setFillsViewportHeight(true);
+		databaseJSPane = new JScrollPane(databaseTable);
 		gbc.gridx = 0;
 		gbc.gridy = 0;
 		gbc.gridwidth = 1;
@@ -177,6 +177,14 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener {
 	}//***************************************************************************************
 	void addRowFromRequest(){
 		Data d;
+		String[] textFieldStrings;
+		textFieldStrings = new String[3];
+		textFieldStrings[0] = requestTable.getValueAt(requestTable.getSelectedRow(), 0).toString();
+		textFieldStrings[1] = requestTable.getValueAt(requestTable.getSelectedRow(), 1).toString();
+		textFieldStrings[2] = requestTable.getValueAt(requestTable.getSelectedRow(), 2).toString();
+		d = new Data(textFieldStrings);
+		databaseListModel.addElement(d);
+		databaseTable.repaint();
 	}//***************************************************************************************
 	void addRowFromTextFields(){
 		Data d;
@@ -187,7 +195,7 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener {
 		textFieldStrings[2] = roomField.getText();
 		d = new Data(textFieldStrings);
 		databaseListModel.addElement(d);
-		
+		databaseTable.repaint();
 	}//***************************************************************************************
 	void setupMainFrame(){
 		Toolkit  tk;
@@ -203,29 +211,70 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener {
 		setVisible(true);
 	}//***************************************************************************************
 	public void actionPerformed(ActionEvent e){
-		if(e.getSource() == addButton){
-			int row = requestModel.getSelectedRow();
-			if(row > -1){
-				addRowFromRequest();
-			}
-			else if(!(softwareField.getText().equals("")) && !(buildingField.getText().equals("")) 
+		if(e.getSource() == searchButton){
+			if(softwareField.getText().equals("") && buildingField.getText().equals("") && roomField.getText().equals("")){
+				/*
+				 * show all
+				 */
+			}else if(!(softwareField.getText().equals("")) && buildingField.getText().equals("") 
+					&& roomField.getText().equals("")){
+				/*
+				 * filter based on software
+				 */
+			}else if(softwareField.getText().equals("") && !(buildingField.getText().equals("")) 
+					&& roomField.getText().equals("")){
+				/*
+				 * filter based on building
+				 */
+			}else if(softwareField.getText().equals("") && buildingField.getText().equals("") 
 					&& !(roomField.getText().equals(""))){
+				/*
+				 * filter based on room
+				 */
+			}else if(!(softwareField.getText().equals("")) && !(buildingField.getText().equals("")) 
+					&& roomField.getText().equals("")){
+				/*
+				 * filter based on software and building
+				 */
+			}else if(!(softwareField.getText().equals("")) && buildingField.getText().equals("") 
+					&& !(roomField.getText().equals(""))){
+				/*
+				 * filter based on software and room
+				 */
+			}
+			else if(softwareField.getText().equals("") && !(buildingField.getText().equals("")) 
+					&& !(roomField.getText().equals(""))){
+				/*
+				 * filter based on building and room
+				 */
+			}
+		}else if(e.getSource() == addButton){
+			if(!(softwareField.getText().equals("")) && !(buildingField.getText().equals("")) 
+				&& !(roomField.getText().equals(""))){
 				addRowFromTextFields();
 				softwareField.setText("");
 				buildingField.setText("");
 				roomField.setText("");
 			}
-		}
-		else if(e.getSource() == removeButton){
-			/*
-			 * remove selected item
-			 * if removing from request table maybe add to database or at least ask 
-			 */
-		}
-		else if(e.getSource() == logoutButton){
-			/*
-			 * close program and if need to add to database at the end
-			 */
+		}else if(e.getSource() == removeButton){
+			int requestRow = requestTable.getSelectedRow();
+			int databaseRow = databaseTable.getSelectedRow();
+			if(requestRow > -1){
+				 int reply = JOptionPane.showConfirmDialog(null, "Would you like to add row to database?", 
+						 "", JOptionPane.YES_NO_OPTION);
+				 if(reply == JOptionPane.YES_OPTION){
+					 addRowFromRequest();
+					 requestListModel.remove(requestTable.getSelectedRow());
+					 requestTable.repaint();
+				 }else {
+					 requestListModel.remove(requestTable.getSelectedRow());
+					 requestTable.repaint();
+				 }
+			}else if(databaseRow > -1){
+				databaseListModel.remove(databaseTable.getSelectedRow());
+				databaseTable.repaint();
+			}
+		}else if(e.getSource() == logoutButton){
 			this.dispose();
 		}
 	}//***************************************************************************************

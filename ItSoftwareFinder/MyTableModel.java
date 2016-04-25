@@ -34,19 +34,9 @@ public class MyTableModel extends AbstractTableModel{
 		d = dlm.elementAt(row);
 		return d.dataString[col];
 	}//***************************************************************************************
-	public void setValueAt(Data value, int row, int col){
-		dlm.addElement(value);
-	}
-	public int getSelectedRow() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
 }//***************************************************************************************
 class Data{
 	String[] dataString;
-	/*
-	 * Pull the request from database and the database
-	 */
 	
 	Data(String[] dataString){
 		this.dataString = new String[dataString.length];
