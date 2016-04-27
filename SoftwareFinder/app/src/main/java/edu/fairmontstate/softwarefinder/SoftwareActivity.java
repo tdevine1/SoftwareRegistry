@@ -50,6 +50,11 @@ public class SoftwareActivity extends ActionBarActivity {
 
         textView.setText("Software " + itemSelected + " Located In:");
 
+        // Replace all spaces with '%20' for URL syntax.
+        if (itemSelected.contains(" ")) {
+            itemSelected = itemSelected.replace(" ", "%20");
+        }
+
         locationQuery = new LocationQuery(this, arrayAdapter, listView);
         locationQuery.execute(locationQueryLink + itemSelected);
     } // end method onCreate().
