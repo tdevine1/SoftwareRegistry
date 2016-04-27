@@ -13,6 +13,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.widget.*;
 import android.view.View;
 import android.content.Intent;
@@ -20,7 +21,7 @@ import android.content.Intent;
 import java.io.*;
 import java.util.*;
 
-public class MainActivity extends ActionBarActivity implements AdapterView.OnItemSelectedListener, TextWatcher {
+public class MainActivity extends ActionBarActivity implements AdapterView.OnItemSelectedListener {
     android.support.v7.widget.Toolbar toolbar;
     Button searchSoftwareButton;
     Button searchBuilding_RoomButton;
@@ -35,12 +36,14 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     String selectedBuildingItem;
     String selectedRoomItem;
     File propertyFile;
+    public static final String softwareQueryLink = "http://fsu-software-registry.heliohost.org/softwareNameQuery.php";
     public static final String SOFTWARE_MSG = "edu.fairmontstate.softwarefinder.SOFTWARE_MSG";
     public static final String BUILDING_MSG = "edu.fairmontstate.softwarefinder.BUILDING_MSG";
     public static final String ROOM_MSG = "edu.fairmontstate.softwarefinder.ROOM_MSG";
     public static final String REQUEST_MSG = "edu.fairmontstate.softwarefinder.REQUEST_MSG";
     SoftwarePoint softwarePoint;
     Vector<SoftwarePoint> requestList;
+    Vector<String> softwareList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,14 +60,11 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         requestButton = (Button)this.findViewById(R.id.updateRequestButton);
         requestHistoryButton = (Button)this.findViewById(R.id.requestHistoryButton);
 
-        searchSoftwareButton.setEnabled(false);
-
         softwareView = (AutoCompleteTextView)this.findViewById(R.id.softwareAutoComplete);
         softwareView.setInputType(InputType.TYPE_CLASS_TEXT);
         buildingSpinner = (Spinner)this.findViewById(R.id.buildingSpinner);
         roomSpinner = (Spinner)this.findViewById(R.id.roomSpinner);
 
-        softwareView.addTextChangedListener(this);
         buildingSpinner.setOnItemSelectedListener(this);
         roomSpinner.setOnItemSelectedListener(this);
 
@@ -75,15 +75,15 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 //================================================================================================================================
     // Method that populates the softwareSpinner with data.
     public void populateAutoCompleteField() {
-        Vector<String> itemList = new Vector<String>();
+        SoftwareQuery softwareQuery;
 
-        itemList.addElement("Microsoft Office 2007");   // test data.
-        itemList.addElement("Microsoft Office 2010");
-        itemList.addElement("Visual Studio 2008");
-        itemList.addElement("Adobe Reader");
-
-        softwareAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, itemList);
-        softwareView.setAdapter(softwareAdapter);
+        try {
+            softwareQuery = new SoftwareQuery(this, softwareAdapter, softwareView);
+            softwareList = softwareQuery.execute(softwareQueryLink).get();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     } // end method populateAutoCompleteField().
 //================================================================================================================================
     // Method that populates the buildingSpinner with data.
@@ -117,13 +117,22 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     public void softwareButtonClicked(View v) {
         Intent intent;
         String selectedSoftware;
+        DialogFragment dialog;
 
         selectedSoftware = softwareView.getText().toString().trim();
-        intent = new Intent(this, SoftwareActivity.class);
-        intent.setAction(Intent.ACTION_SEND);
-        intent.putExtra(SOFTWARE_MSG, selectedSoftware);
-        intent.setType("text/plain");
-        startActivity(intent);
+        if (softwareList.contains(selectedSoftware)) {
+            intent = new Intent(this, SoftwareActivity.class);
+            intent.setAction(Intent.ACTION_SEND);
+            intent.putExtra(SOFTWARE_MSG, selectedSoftware);
+            intent.setType("text/plain");
+            startActivity(intent);
+        } else if (selectedSoftware.equals("")){
+            dialog = new AlertMessage("Field Empty", "Please enter software to be searched.");
+            dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
+        } else {
+            dialog = new AlertMessage("Not Found", "That software doesn't exist in the database.");
+            dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
+        }
     } // end method softwareButtonClicked().
 //================================================================================================================================
     // Method that invokes the LocationActivity when the search building & room button is clicked.
@@ -293,29 +302,5 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     } // end method onItemSelected().
 //================================================================================================================================
     public void onNothingSelected(AdapterView<?> parent) {} // end method onNothingSelected().
-//================================================================================================================================
-    // Method that validates the input of the auto-complete field and enables the button if the field content is valid.
-    public void onTextChanged(CharSequence s, int start, int before, int count) {
-        boolean found = false;
-        int index = 0;
-        String fieldItem;
-        String listItem;
-
-        fieldItem = softwareView.getText().toString().trim();
-        while (!found && index < softwareAdapter.getCount()) {
-            listItem = softwareAdapter.getItem(index).trim();
-            if (fieldItem.toUpperCase().equals(listItem.toUpperCase())) {
-                searchSoftwareButton.setEnabled(true);
-                found = true;
-            }
-            else {
-                searchSoftwareButton.setEnabled(false);
-                index++;
-            }
-        }
-    } // end method onTextChanged().
-//================================================================================================================================
-    public void afterTextChanged(Editable s) {} // end method afterTextChanged().
-//================================================================================================================================
-    public void beforeTextChanged(CharSequence s, int start, int before, int count) {} // end method beforeTextChanged().
 } // end class MainActivity.
+
