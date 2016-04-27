@@ -5,10 +5,8 @@ package edu.fairmontstate.softwarefinder;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-
 import java.net.*;
 import java.io.*;
 import java.util.Vector;
@@ -63,7 +61,6 @@ public class SoftwareQuery extends AsyncTask<String, Void, Vector<String>> {
                         placeHolder = placeHolder.substring(placeHolder.indexOf("null") + 4, placeHolder.length());
                     }
                     itemList.addElement(placeHolder);
-                    Log.v("Name", placeHolder);
                     placeHolder = "";
                 }
                 index++;
@@ -81,16 +78,5 @@ public class SoftwareQuery extends AsyncTask<String, Void, Vector<String>> {
     protected void onPostExecute(Vector<String> itemList) {
         softwareAdapter = new ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line, itemList);
         softwareView.setAdapter(softwareAdapter);
-        setItemList(itemList);
     } // end method onPostExecute().
-//================================================================================================================================
-    // Method to set the current item list.
-    private void setItemList(Vector<String> itemList) {
-        this.itemList = itemList;
-    } // end method setItemList().
-//================================================================================================================================
-    // Method to return the item list to the main activity.
-    public Vector<String> getItemList() {
-        return itemList;
-    } // end method getItemList().
 } // end class SoftwareQuery.
