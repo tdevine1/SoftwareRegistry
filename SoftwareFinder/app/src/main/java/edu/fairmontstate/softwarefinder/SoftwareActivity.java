@@ -14,6 +14,7 @@ import android.widget.TextView;
 import java.util.Vector;
 
 public class SoftwareActivity extends ActionBarActivity {
+    public final String locationQueryLink = "http://fsu-software-registry.heliohost.org/softwareLocationQuery.php?softwareName=";
     Toolbar toolbar;
     Drawable backArrow;
     Intent intent;
@@ -22,6 +23,7 @@ public class SoftwareActivity extends ActionBarActivity {
     String itemSelected;
     Vector<String> locationList;
     ArrayAdapter<String> arrayAdapter;
+    LocationQuery locationQuery;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,33 +48,9 @@ public class SoftwareActivity extends ActionBarActivity {
         textView = (TextView)findViewById(R.id.titleViewSoftware);
         listView = (ListView)findViewById(R.id.listViewSoftware);
 
-        locationList = new Vector<String>();
-
-        if (itemSelected.equals("Visual Studio 2008")) {
-            locationList.addElement("110 Engineering & Technology Building");
-            locationList.addElement("Library 1st floor");
-            locationList.addElement("Library 2nd floor");
-            locationList.addElement("417 Engineering & Technology Building");
-        }
-        else if (itemSelected.equals("Microsoft Office 2010")) {
-            locationList.addElement("Library 1st floor");
-            locationList.addElement("Library 2nd floor");
-            locationList.addElement("204 Engineering & Technology Building");
-        }
-        else if (itemSelected.equals("Microsoft Office 2007")) {
-            locationList.addElement("Library 1st floor");
-            locationList.addElement("Library 2nd floor");
-            locationList.addElement("204 Engineering & Technology Building");
-        }
-        else if (itemSelected.equals("Adobe Reader")) {
-            locationList.addElement("Library 1st floor");
-            locationList.addElement("Library 2nd floor");
-            locationList.addElement("204 Engineering & Technology Building");
-            locationList.addElement("208 Engineering & Technology Building");
-        }
-
-        arrayAdapter = new ArrayAdapter<String>(this, R.layout.custom_list_view, locationList);
         textView.setText("Software " + itemSelected + " Located In:");
-        listView.setAdapter(arrayAdapter);
+
+        locationQuery = new LocationQuery(this, arrayAdapter, listView);
+        locationQuery.execute(locationQueryLink + itemSelected);
     } // end method onCreate().
 } // end class SoftwareActivity.

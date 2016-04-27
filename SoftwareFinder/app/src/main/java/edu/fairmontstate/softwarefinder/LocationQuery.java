@@ -1,4 +1,4 @@
-/* Class that handles execution of the query to get the software names.
+/* Class that handles execution of the query to get the locations of the specified software.
  *
  */
 package edu.fairmontstate.softwarefinder;
@@ -6,53 +6,59 @@ package edu.fairmontstate.softwarefinder;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
-import java.net.*;
-import java.io.*;
+import android.widget.ListView;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Vector;
 
-public class SoftwareQuery extends AsyncTask<String, Void, Vector<String>> {
+public class LocationQuery extends AsyncTask<String, Void, Vector<String>> {
     Context context;
-    ArrayAdapter<String> softwareAdapter;
-    AutoCompleteTextView softwareView;
+    ArrayAdapter<String> arrayAdapter;
+    ListView listView;
+    Vector<String> locationList;
     URL url;
     URLConnection conn;
     BufferedReader br;
     String line;
     StringBuilder sb;
     String splitStr;
-    Vector<String> itemList;
     String[] rowArray;
+    String[] rowElements;
 
-    public SoftwareQuery(Context context, ArrayAdapter<String> softwareAdapter, AutoCompleteTextView softwareView) {
+    public LocationQuery(Context context, ArrayAdapter<String> arrayAdapter, ListView listView) {
         this.context = context;
-        this.softwareAdapter = softwareAdapter;
-        this.softwareView = softwareView;
+        this.arrayAdapter = arrayAdapter;
+        this.listView = listView;
     } // end constructor.
 //================================================================================================================================
     // Method to get the output of the php execution from the link.
     @Override
-    protected Vector<String> doInBackground(String... urls) {
+    public Vector<String> doInBackground(String... urls) {
 
         try {
             url = new URL(urls[0]);
             conn = url.openConnection();
             br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             sb = new StringBuilder();
-            itemList = new Vector<String>();
+            locationList = new Vector<String>();
 
             while ((line = br.readLine()) != null) {
                 if (!line.equals("")) {
                     sb.append(line);
                 }
             }
-            splitStr = sb.toString();
 
+            splitStr = sb.toString();
             rowArray = splitStr.split("[$]");
+
             for (int i = 0; i < rowArray.length; i++) {
-                itemList.addElement(rowArray[i]);
+                rowElements = rowArray[i].split("[%]");
+                locationList.addElement(rowElements[1] + " " + rowElements[0]);
             }
-            return itemList;
+            return locationList;
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -62,8 +68,8 @@ public class SoftwareQuery extends AsyncTask<String, Void, Vector<String>> {
 //================================================================================================================================
     // Method to set the auto complete field with the data.
     @Override
-    protected void onPostExecute(Vector<String> itemList) {
-        softwareAdapter = new ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line, itemList);
-        softwareView.setAdapter(softwareAdapter);
+    public void onPostExecute(Vector<String> locationList) {
+        arrayAdapter = new ArrayAdapter<String>(context, R.layout.custom_list_view, locationList);
+        listView.setAdapter(arrayAdapter);
     } // end method onPostExecute().
-} // end class SoftwareQuery.
+}
