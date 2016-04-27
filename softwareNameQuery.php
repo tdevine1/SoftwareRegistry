@@ -1,9 +1,9 @@
 
 <?php
-	$mysql_host = "127.0.0.1";
-	$mysql_database = "fsubism_softwareFinder";
-	$mysql_user = "fsubism";
-	$mysql_password = "fsu_admin";
+	$mysql_host = "ns139.hosting24.com";
+	$mysql_database = "fsusoftw_database";
+	$mysql_user = "fsusoftw_user";
+	$mysql_password = "fsu-admin";
 	$mysql_query = "SELECT software_name FROM Software";
 	
 	// Check connection 
