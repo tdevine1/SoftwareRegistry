@@ -3,6 +3,7 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.awt.*;
@@ -18,7 +19,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 public class Login extends JDialog implements ActionListener, DocumentListener {
-	MainFrame frame;
 	Container cp;
 	JTextField usernameField;
 	JPasswordField passwordField;
@@ -32,16 +32,13 @@ public class Login extends JDialog implements ActionListener, DocumentListener {
 	GroupLayout UNPWLayout;
 	GroupLayout.SequentialGroup hGroup;
 	GroupLayout.SequentialGroup vGroup;
-	int pid;
-	boolean member;
-	boolean admin;
+	Connection con;
 	PreparedStatement statement;
 	ResultSet resultSet;
 	String query;
 	String type;
 	
-	public Login(MainFrame tempFrame)  {
-		frame = tempFrame;	
+	public Login(){	
 		cp = getContentPane();
 		
 		imagePanel = new JPanel();
@@ -73,9 +70,9 @@ public class Login extends JDialog implements ActionListener, DocumentListener {
 		cp.add(loginPanel, BorderLayout.CENTER);
 		cp.add(buttonPanel, BorderLayout.SOUTH);
 		getRootPane().setDefaultButton(loginButton);
-		setupMainFrame();
+		setupLogin();
 	}//***************************************************************************************
-	void setupMainFrame() {
+	void setupLogin() {
 		Toolkit  tk;
 		Dimension d;
 		tk = Toolkit.getDefaultToolkit();
@@ -85,7 +82,6 @@ public class Login extends JDialog implements ActionListener, DocumentListener {
 		setMaximumSize(new Dimension(300,200));
 		setLocation(d.width/4,d.height/4);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-		setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
 		setVisible(true);
 	}//***************************************************************************************
 	void checkTextField(){
@@ -106,7 +102,7 @@ public class Login extends JDialog implements ActionListener, DocumentListener {
 		tempPassword = passwordField.getPassword();
 		password = new String(tempPassword).trim();
 		if(username.equals("admin") && password.equals("password")){
-			frame.loginSuccess();
+			new MainFrame();
 			this.dispose();
 		}
 		else

@@ -1,24 +1,30 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.*;
+import java.util.Vector;
+import java.util.regex.PatternSyntaxException;
+
 import javax.swing.*;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.event.*;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 
 public class Main {
 	public static void main(String[] args) {
-		new MainFrame();
+		new Login();
 	}//***************************************************************************************
 }//***************************************************************************************
-class MainFrame extends JFrame implements ActionListener, DocumentListener {
+class MainFrame extends JFrame implements ActionListener, DocumentListener, MouseListener {
 	Container cp;
-	DefaultListModel databaseListModel;
-	MyTableModel databaseModel;
-	JScrollPane databaseJSPane;
-	JTable databaseList;
-	DefaultListModel requestListModel;
-	MyTableModel requestModel;
-	JScrollPane requestJSPane;
-	JTable requestList;
+	DefaultTableModel dbTM;
+	JScrollPane dbJSP;
+	JTable dbT;
+	DefaultTableModel rTM;
+	JScrollPane rJSP;
+	TableRowSorter<TableModel> sorter; 
+	JTable rT;
 	JPanel topPanel;
 	JPanel bottomPanel;
 	JPanel buttonPanel;
@@ -41,13 +47,14 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener {
 	GroupLayout.SequentialGroup hGroup;
 	GroupLayout.SequentialGroup vGroup;
 	GridBagConstraints gbc;;
-	String []databaseColumns = {"Software", "Building", "Room"};
-	String []requestColumns = {"Software", "Building", "Room", "Count"};
-	
+	Vector<String> dbCol;
+	Vector<Object> dbRows;
+	Vector<Object> dbData;
+	Vector<String> rCol;
+	Vector<Object> rRows;
+	Vector<Object> rData;
+
 	MainFrame(){
-		new Login(this);
-	}//***************************************************************************************
-	void loginSuccess(){
 		cp = getContentPane();
 		cp.setLayout(new GridLayout(3,1));
 		gbc = new GridBagConstraints();
@@ -58,13 +65,13 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener {
 		groupPanel = new JPanel();
 		buttonPanel = new JPanel();
 		imagePanel = new JPanel();
-		
+
 		softwareField = new JTextField();
 		softwareField.getDocument().addDocumentListener(this);
 		buildingField = new JTextField();
 		buildingField.getDocument().addDocumentListener(this);
 		roomField = new JTextField();
-		roomField.getDocument().addDocumentListener(this);		
+		roomField.getDocument().addDocumentListener(this);
 		softwareLabel = new JLabel("Software");
 		buildingLabel = new JLabel("Buidling");
 		roomLabel = new JLabel("Room");
@@ -72,7 +79,7 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener {
 		requestLabel = new JLabel("Request");
 		imageLabel = new JLabel(new ImageIcon("FairmontLogo.png"));
 		imagePanel.add(imageLabel);
-		
+
 		searchButton = new JButton("Search");
 		searchButton.addActionListener(this);
 		addButton = new JButton("Add");
@@ -123,14 +130,30 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener {
 		gbc.fill = GridBagConstraints.BOTH;
 		topPanel.add(groupPanel, gbc);
 		
-		requestListModel = new DefaultListModel();
-		requestModel = new MyTableModel(requestListModel, requestColumns);
-		requestList = new JTable(requestModel);
-		requestList.setVisible(true);
-		requestList.getTableHeader().setReorderingAllowed(false);
-		requestList.setPreferredScrollableViewportSize(new Dimension(700,500));
-		requestList.setFillsViewportHeight(true);
-		requestJSPane = new JScrollPane(requestList);
+		rCol = new Vector<String>();
+		rCol.addElement("Software");
+		rCol.addElement("Building");
+		rCol.addElement("Room");
+		rCol.addElement("Count");
+		rRows = new Vector<Object>();
+		
+		rTM = new DefaultTableModel(rRows, rCol);
+		rT = new JTable(rTM){
+			@Override
+			public boolean isCellEditable ( int row, int col){
+				return false;
+			}
+		};
+		rT.setVisible(true);
+		rT.getTableHeader().setReorderingAllowed(false);
+		rT.setPreferredScrollableViewportSize(new Dimension(900,500));
+		rT.setFillsViewportHeight(true);
+		rT.setSelectionBackground(Color.YELLOW);
+		rT.setBackground(Color.WHITE);
+		rT.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		rT.addMouseListener(this);
+		rT.setAutoCreateRowSorter(true);
+		rJSP = new JScrollPane(rT);
 		gbc.gridx = 0;
 		gbc.gridy = 0;
 		gbc.gridwidth = 1;
@@ -144,16 +167,33 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener {
 		gbc.gridheight = 4;
 		gbc.weighty = 0.5;
 		gbc.fill = GridBagConstraints.BOTH;
-		topPanel.add(requestJSPane, gbc);
+		topPanel.add(rJSP, gbc);
 		
-		databaseListModel = new DefaultListModel();
-		databaseModel = new MyTableModel(databaseListModel, databaseColumns);
-		databaseList = new JTable(databaseModel);
-		databaseList.setVisible(true);
-		databaseList.getTableHeader().setReorderingAllowed(false);
-		databaseList.setPreferredScrollableViewportSize(new Dimension(700,500));
-		databaseList.setFillsViewportHeight(true);
-		databaseJSPane = new JScrollPane(databaseList);
+		dbCol = new Vector<String>();
+		dbCol.addElement("Software");
+		dbCol.addElement("Building");
+		dbCol.addElement("Room");
+		dbRows = new Vector<Object>();
+		
+		dbTM = new DefaultTableModel(dbRows, dbCol);
+		dbT = new JTable(dbTM){
+			@Override
+			public boolean isCellEditable ( int row, int col){
+				return false;
+			}
+		};
+		sorter = new TableRowSorter<TableModel>(dbTM);
+		dbT.setRowSorter(sorter);
+		dbT.setVisible(true);
+		dbT.getTableHeader().setReorderingAllowed(false);
+		dbT.setPreferredScrollableViewportSize(new Dimension(700,500));
+		dbT.setFillsViewportHeight(true);
+		dbT.setSelectionBackground(Color.YELLOW);
+		dbT.setBackground(Color.WHITE);
+		dbT.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		dbT.addMouseListener(this);
+		dbT.setAutoCreateRowSorter(true);
+		dbJSP = new JScrollPane(dbT);
 		gbc.gridx = 0;
 		gbc.gridy = 0;
 		gbc.gridwidth = 1;
@@ -167,27 +207,112 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener {
 		gbc.gridheight = 8;
 		gbc.weighty = 0.5;
 		gbc.fill = GridBagConstraints.BOTH;
-		bottomPanel.add(databaseJSPane, gbc);
-		
+		bottomPanel.add(dbJSP, gbc);
+
 		cp.add(imagePanel);
 		cp.add(topPanel);
 		cp.add(bottomPanel);
-		validate();
+		populateDatbaseTable();
+		populaterequestTable();
 		setupMainFrame();
 	}//***************************************************************************************
 	void addRowFromRequest(){
-		Data d;
+		dbData = new Vector<Object>();
+		dbData.addElement(rTM.getValueAt(rT.getSelectedRow(), 0));
+		dbData.addElement(rTM.getValueAt(rT.getSelectedRow(), 1));
+		dbData.addElement(rTM.getValueAt(rT.getSelectedRow(), 2));
+		dbRows.addElement(dbData);
+		dbT.repaint();
 	}//***************************************************************************************
 	void addRowFromTextFields(){
-		Data d;
-		String[] textFieldStrings;
-		textFieldStrings = new String[3];
-		textFieldStrings[0] = softwareField.getText();
-		textFieldStrings[1] = buildingField.getText();
-		textFieldStrings[2] = roomField.getText();
-		d = new Data(textFieldStrings);
-		databaseListModel.addElement(d);
-		
+		dbData = new Vector<Object>();
+		dbData.addElement(softwareField.getText());
+		dbData.addElement(buildingField.getText());
+		dbData.addElement(roomField.getText());
+		dbRows.addElement(dbData);
+		dbT.repaint();
+	}//***************************************************************************************
+	void populateDatbaseTable(){
+		Connection con;
+		PreparedStatement st;
+		ResultSet rs;
+		String query;
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+		} catch(Exception e){
+			e.printStackTrace();
+			System.out.println("Error: " + e);
+		}
+		try {
+			con = DriverManager.getConnection("jdbc:mysql://johnny.heliohost.org/fsubism_softwareFinder"
+					,"fsubism_user","fsu-admin");
+			query = "select * from Located_in L, Software S, Location O ";
+			query = query + "where L.soft_id = S.id_software AND L.loc_id = O.id_location";
+			st = con.prepareStatement(query);
+			rs = st.executeQuery();
+			while(rs.next()){
+				dbData = new Vector<Object>();
+				dbData.addElement(rs.getString("software_name"));
+				dbData.addElement(rs.getString("building"));
+				dbData.addElement(rs.getString("room"));
+				dbRows.addElement(dbData);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Error: " + e);
+		}
+	}//***************************************************************************************
+	void populaterequestTable(){
+		Connection con;
+		PreparedStatement st;
+		ResultSet rs;
+		String query;
+		int requestCount;
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+		} catch(Exception e){
+			e.printStackTrace();
+			System.out.println("Error: " + e);
+		}
+		try {
+			con = DriverManager.getConnection("jdbc:mysql://johnny.heliohost.org/fsubism_softwareFinder"
+					,"fsubism_user","fsu-admin");
+			query = "select * from Located_in L, Software S, Location O, Requests R ";
+			query = query + "where L.soft_id = S.id_software AND L.loc_id = O.id_location AND L.req_id = R.id_request";
+			st = con.prepareStatement(query);
+			rs = st.executeQuery();
+			while(rs.next()){
+				rData = new Vector<Object>();
+				rData.addElement(rs.getString("software_name"));
+				rData.addElement(rs.getString("building"));
+				rData.addElement(rs.getString("room"));
+				requestCount = rs.getInt("request_count");
+				rData.addElement(Integer.toString(requestCount));
+				rRows.addElement(rData);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Error: " + e);
+		}
+	}//***************************************************************************************
+	void sort(){
+		System.out.println("SORT" );
+		if(softwareField.getText().equals("") && buildingField.getText().equals("") && roomField.getText().equals("")){
+            sorter.setRowFilter(null);
+
+		}else if(!(softwareField.getText().equals("")) && buildingField.getText().equals("")
+				&& roomField.getText().equals("")){
+			String text = softwareField.getText();
+			sorter.setRowFilter(RowFilter.regexFilter("^" + text));
+		}else if(!(softwareField.getText().equals("")) && !(buildingField.getText().equals(""))
+				&& roomField.getText().equals("")){
+			String text = buildingField.getText();
+			sorter.setRowFilter(RowFilter.regexFilter(text));
+		}else if(!(softwareField.getText().equals("")) && !(buildingField.getText().equals(""))
+				&& !(roomField.getText().equals(""))){
+			String text = roomField.getText();
+			sorter.setRowFilter(RowFilter.regexFilter(text));
+		}
 	}//***************************************************************************************
 	void setupMainFrame(){
 		Toolkit  tk;
@@ -203,37 +328,113 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener {
 		setVisible(true);
 	}//***************************************************************************************
 	public void actionPerformed(ActionEvent e){
-		if(e.getSource() == addButton){
-			int row = requestModel.getSelectedRow();
-			if(row > -1){
-				addRowFromRequest();
-			}
-			else if(!(softwareField.getText().equals("")) && !(buildingField.getText().equals("")) 
+		if(e.getSource() == searchButton){
+			/*if(softwareField.getText().equals("") && buildingField.getText().equals("") && roomField.getText().equals("")){
+	               sorter.setRowFilter(null);
+	  
+			}else if(!(softwareField.getText().equals("")) && buildingField.getText().equals("")
+					&& roomField.getText().equals("")){
+				String text = softwareField.getText();
+				try {
+					sorter.setRowFilter(RowFilter.regexFilter(text));
+				}catch(PatternSyntaxException pse) {
+					System.err.println("Bad regex pattern");
+				}
+			}else if(softwareField.getText().equals("") && !(buildingField.getText().equals(""))
+					&& roomField.getText().equals("")){
+				String text = buildingField.getText();
+				try {
+					sorter.setRowFilter(RowFilter.regexFilter(text));
+				}catch(PatternSyntaxException pse) {
+					System.err.println("Bad regex pattern");
+				}
+			}else if(softwareField.getText().equals("") && buildingField.getText().equals("")
 					&& !(roomField.getText().equals(""))){
+				String text = roomField.getText();
+				try {
+					sorter.setRowFilter(RowFilter.regexFilter(text));
+				}catch(PatternSyntaxException pse) {
+					System.err.println("Bad regex pattern");
+				}
+			}else if(!(softwareField.getText().equals("")) && !(buildingField.getText().equals(""))
+					&& roomField.getText().equals("")){
+				/*
+				 * filter based on software and building
+				 
+			}else if(!(softwareField.getText().equals("")) && buildingField.getText().equals("")
+					&& !(roomField.getText().equals(""))){
+				/*
+				 * filter based on software and room
+				 
+			}
+			else if(softwareField.getText().equals("") && !(buildingField.getText().equals(""))
+					&& !(roomField.getText().equals(""))){
+				/*
+				 * filter based on building and room
+				 
+			}*/
+		}else if(e.getSource() == addButton){
+			if(!(softwareField.getText().equals("")) && !(buildingField.getText().equals(""))
+				&& !(roomField.getText().equals(""))){
 				addRowFromTextFields();
 				softwareField.setText("");
 				buildingField.setText("");
 				roomField.setText("");
 			}
-		}
-		else if(e.getSource() == removeButton){
-			/*
-			 * remove selected item
-			 * if removing from request table maybe add to database or at least ask 
-			 */
-		}
-		else if(e.getSource() == logoutButton){
-			/*
-			 * close program and if need to add to database at the end
-			 */
+		}else if(e.getSource() == removeButton){
+			int requestRow = rT.getSelectedRow();
+			int databaseRow = dbT.getSelectedRow();
+			if(requestRow > -1){
+				 int reply = JOptionPane.showConfirmDialog(null, "Would you like to add row to database?",
+						 "", JOptionPane.YES_NO_OPTION);
+				 if(reply == JOptionPane.YES_OPTION){
+					 addRowFromRequest();
+					 rRows.remove(rT.getSelectedRow());
+					 rT.clearSelection();
+					 rT.repaint();
+				 }else {
+					 rRows.remove(rT.getSelectedRow());
+					 rT.clearSelection();
+					 rT.repaint();
+				 }
+			}else if(databaseRow > -1){
+				dbRows.remove(dbT.getSelectedRow());
+				dbT.clearSelection();
+				dbT.repaint();
+			}
+		}else if(e.getSource() == logoutButton){
 			this.dispose();
 		}
 	}//***************************************************************************************
 	public void changedUpdate(DocumentEvent e){
 	}//***************************************************************************************
 	public void insertUpdate(DocumentEvent e){
+		sort();
 	}//***************************************************************************************
 	public void removeUpdate(DocumentEvent e){
+		sort();
+	}//***************************************************************************************
+	public void mouseClicked(MouseEvent e) {
+		if(e.getSource() == rT){
+			int databaseRow = dbT.getSelectedRow();
+			if(databaseRow > -1){
+				dbT.clearSelection();
+			}
+		}
+		if(e.getSource() == dbT){
+			int requestRow = rT.getSelectedRow();
+			if(requestRow > -1){
+				rT.clearSelection();
+			}
+		}
+	}//***************************************************************************************
+	public void mouseEntered(MouseEvent e) {
+	}//***************************************************************************************
+	public void mouseExited(MouseEvent e) {
+	}//***************************************************************************************
+	public void mousePressed(MouseEvent e) {
+	}//***************************************************************************************
+	public void mouseReleased(MouseEvent e) {
 	}//***************************************************************************************
 }//***************************************************************************************
 
