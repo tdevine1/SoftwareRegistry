@@ -49,7 +49,7 @@ public class SoftwareQuery extends AsyncTask<String, Void, Vector<String>> {
             splitStr = sb.toString();
 
             rowArray = splitStr.split("[$]");
-            for (int i = 0; i < rowArray.length; i++) {
+            for (int i = 0; i < rowArray.length - 1; i++) {
                 itemList.addElement(rowArray[i]);
             }
             return itemList;

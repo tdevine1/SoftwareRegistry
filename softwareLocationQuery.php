@@ -1,9 +1,9 @@
 
 <?php
-	$mysql_host = "127.0.0.1";
-	$mysql_database = "fsubism_softwareFinder";
-	$mysql_user = "fsubism";
-	$mysql_password = "fsu_admin";
+	$mysql_host = "ns139.hosting24.com";
+	$mysql_database = "fsusoftw_database";
+	$mysql_user = "fsusoftw_user";
+	$mysql_password = "fsu-admin";
 	$software_name = $_GET['softwareName'];
 	$mysql_query = "SELECT l.building, l.room FROM Software s, Location l, Located_in loc WHERE s.software_name = '$software_name' AND s.id_software = loc.soft_id AND loc.loc_id = l.id_location";
 

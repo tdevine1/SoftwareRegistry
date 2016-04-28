@@ -36,7 +36,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     String selectedBuildingItem;
     String selectedRoomItem;
     File propertyFile;
-    public static final String softwareQueryLink = "http://fsu-software-registry.heliohost.org/softwareNameQuery.php";
+    public static final String softwareQueryLink = "http://fsu-software-finder.net16.net/softwareNameQuery.php";
     public static final String SOFTWARE_MSG = "edu.fairmontstate.softwarefinder.SOFTWARE_MSG";
     public static final String BUILDING_MSG = "edu.fairmontstate.softwarefinder.BUILDING_MSG";
     public static final String ROOM_MSG = "edu.fairmontstate.softwarefinder.ROOM_MSG";

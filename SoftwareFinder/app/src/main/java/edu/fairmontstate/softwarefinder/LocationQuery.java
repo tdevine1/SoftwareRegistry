@@ -54,7 +54,7 @@ public class LocationQuery extends AsyncTask<String, Void, Vector<String>> {
             splitStr = sb.toString();
             rowArray = splitStr.split("[$]");
 
-            for (int i = 0; i < rowArray.length; i++) {
+            for (int i = 0; i < rowArray.length - 1; i++) {
                 rowElements = rowArray[i].split("[%]");
                 locationList.addElement(rowElements[1] + " " + rowElements[0]);
             }

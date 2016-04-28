@@ -14,7 +14,7 @@ import android.widget.TextView;
 import java.util.Vector;
 
 public class SoftwareActivity extends ActionBarActivity {
-    public final String locationQueryLink = "http://fsu-software-registry.heliohost.org/softwareLocationQuery.php?softwareName=";
+    public final String locationQueryLink = "http://fsu-software-finder.net16.net/softwareLocationQuery.php?softwareName=";
     Toolbar toolbar;
     Drawable backArrow;
     Intent intent;
