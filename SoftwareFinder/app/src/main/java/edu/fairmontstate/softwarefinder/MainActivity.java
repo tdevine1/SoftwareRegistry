@@ -37,6 +37,8 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     String selectedRoomItem;
     File propertyFile;
     public static final String softwareQueryLink = "http://fsu-software-finder.net16.net/softwareNameQuery.php";
+    public static final String buildingQueryLink = "http://fsu-software-finder.net16.net/buildingQuery.php";
+    public static final String roomQueryLink = "http://fsu-software-finder.net16.net/roomQuery.php";
     public static final String SOFTWARE_MSG = "edu.fairmontstate.softwarefinder.SOFTWARE_MSG";
     public static final String BUILDING_MSG = "edu.fairmontstate.softwarefinder.BUILDING_MSG";
     public static final String ROOM_MSG = "edu.fairmontstate.softwarefinder.ROOM_MSG";
@@ -44,6 +46,8 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     SoftwarePoint softwarePoint;
     Vector<SoftwarePoint> requestList;
     Vector<String> softwareList;
+    Vector<String> buildingList;
+    Vector<String> roomList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,29 +92,35 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 //================================================================================================================================
     // Method that populates the buildingSpinner with data.
     public void populateBuildingSpinner() {
-        Vector<String> itemList = new Vector<String>();
+        BuildingQuery buildingQuery;
 
-        itemList.addElement("<Select Building>");
-        itemList.addElement("Engineering & Technology Building");   // test data.
-        itemList.addElement("Library");
-        itemList.addElement("Falcon Center");
+        try {
+            buildingQuery = new BuildingQuery(this);
+            buildingList = buildingQuery.execute(buildingQueryLink).get();
 
-        buildingAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, itemList);
-        buildingSpinner.setAdapter(buildingAdapter);
+//            buildingAdapter = new ArrayAdapter<String>(this, R.layout.custom_list_view, buildingList);
+            buildingAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, buildingList);
+            buildingSpinner.setAdapter(buildingAdapter);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     } // end method populateBuildingSpinner().
 //================================================================================================================================
     // Method that populates the roomSpinner with data.
     public void populateRoomSpinner() {
-        Vector<String> itemList = new Vector<String>();
+        RoomQuery roomQuery;
 
-        itemList.addElement("<Select Room#>");
-        itemList.addElement("110");     // test data.
-        itemList.addElement("213");
-        itemList.addElement("302");
-        itemList.addElement("417");
+        try {
+            roomQuery = new RoomQuery(this);
+            roomList = roomQuery.execute(roomQueryLink).get();
 
-        roomAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, itemList);
-        roomSpinner.setAdapter(roomAdapter);
+            roomAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, roomList);
+            roomSpinner.setAdapter(roomAdapter);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     } // end method populateRoomSpinner().
 //================================================================================================================================
     // Method that invokes the SoftwareActivity when the search software button is clicked.

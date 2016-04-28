@@ -11,8 +11,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.util.Vector;
-
 public class SoftwareActivity extends ActionBarActivity {
     public final String locationQueryLink = "http://fsu-software-finder.net16.net/softwareLocationQuery.php?softwareName=";
     Toolbar toolbar;
@@ -21,7 +19,6 @@ public class SoftwareActivity extends ActionBarActivity {
     TextView textView;
     ListView listView;
     String itemSelected;
-    Vector<String> locationList;
     ArrayAdapter<String> arrayAdapter;
     LocationQuery locationQuery;
 
@@ -51,9 +48,7 @@ public class SoftwareActivity extends ActionBarActivity {
         textView.setText("Software " + itemSelected + " Located In:");
 
         // Replace all spaces with '%20' for URL syntax.
-        if (itemSelected.contains(" ")) {
-            itemSelected = itemSelected.replace(" ", "%20");
-        }
+        itemSelected = itemSelected.replace(" ", "%20");
 
         locationQuery = new LocationQuery(this, arrayAdapter, listView);
         locationQuery.execute(locationQueryLink + itemSelected);

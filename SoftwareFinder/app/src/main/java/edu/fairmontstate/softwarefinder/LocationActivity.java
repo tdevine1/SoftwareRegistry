@@ -11,18 +11,17 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.util.Vector;
-
 public class LocationActivity extends ActionBarActivity {
+    public final String softwareQueryLink = "http://fsu-software-finder.net16.net/locationSoftwareQuery.php?buildingName=";
     Toolbar toolbar;
     Drawable backArrow;
     Intent intent;
     TextView textView;
     String buildingItem;
     String roomItem;
-    Vector<String> softwareList;
     ArrayAdapter<String> arrayAdapter;
     ListView listView;
+    SoftwareLocatedQuery softwareLocatedQuery;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,29 +44,16 @@ public class LocationActivity extends ActionBarActivity {
         buildingItem = intent.getStringExtra(MainActivity.BUILDING_MSG);
         roomItem = intent.getStringExtra(MainActivity.ROOM_MSG);
 
-        softwareList = new Vector<String>();
-
-        if (buildingItem.equals("Engineering & Technology Building") && roomItem.equals("110")) {
-            softwareList.addElement("Adobe Reader");
-            softwareList.addElement("Microsoft Office 2010");
-            softwareList.addElement("Visual Studio 2008");
-        }
-        if (buildingItem.equals("Engineering & Technology Building") && roomItem.equals("302")) {
-            softwareList.addElement("Adobe Reader");
-            softwareList.addElement("Microsoft Office 2010");
-            softwareList.addElement("Visual Studio 2008");
-        }
-        if (buildingItem.equals("Library") && roomItem.equals("213")) {
-            softwareList.addElement("Adobe Reader");
-            softwareList.addElement("Microsoft Office 2007");
-            softwareList.addElement("Microsoft Office 2010");
-            softwareList.addElement("Visual Studio 2008");
-        }
-
-        arrayAdapter = new ArrayAdapter<String>(this, R.layout.custom_list_view, softwareList);
         textView = (TextView)findViewById(R.id.titleViewLocation);
         listView = (ListView)findViewById(R.id.listViewLocation);
+
         textView.setText("Software in Location" +  ": " + buildingItem + " " + roomItem);
-        listView.setAdapter(arrayAdapter);
+
+        // Replace all spaces with '%20' for URL syntax.
+        buildingItem = buildingItem.replace(" ", "%20");
+        roomItem = roomItem.replace(" ", "%20");
+
+        softwareLocatedQuery = new SoftwareLocatedQuery(this, arrayAdapter, listView);
+        softwareLocatedQuery.execute(softwareQueryLink + buildingItem + "&roomNumber=" + roomItem);
     } // end method onCreate().
 } // end class LocationActivity.
