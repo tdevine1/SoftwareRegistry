@@ -5,6 +5,7 @@ package edu.fairmontstate.softwarefinder;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import java.net.*;
@@ -47,8 +48,8 @@ public class SoftwareQuery extends AsyncTask<String, Void, Vector<String>> {
                 }
             }
             splitStr = sb.toString();
-
             rowArray = splitStr.split("[$]");
+
             for (int i = 0; i < rowArray.length - 1; i++) {
                 itemList.addElement(rowArray[i]);
             }

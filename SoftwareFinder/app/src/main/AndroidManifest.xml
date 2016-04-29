@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="edu.fairmontstate.softwarefinder">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <supports-screens
         android:anyDensity="true"
@@ -63,6 +63,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="edu.fairmontstate.softwarefinder.MainActivity" />
         </activity>
+        <activity
+            android:name=".BuildingActivity"
+            android:label="@string/title_activity_building"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

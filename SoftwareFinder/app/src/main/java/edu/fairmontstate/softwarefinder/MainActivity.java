@@ -150,9 +150,20 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         Intent intent;
         DialogFragment dialog;
 
-        if (selectedBuildingItem.equals("<Select Building>") || selectedRoomItem.equals("<Select Room#>")) {
+        if (selectedBuildingItem.equals("<Select Building>") && selectedRoomItem.equals("<Select Room#>")) {
             dialog = new AlertMessage("No location selected", "Please select a valid loction");
             dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
+        }
+        else if ((selectedBuildingItem.equals("<Select Building>")) && (!selectedRoomItem.equals("<Select Room#>"))) {
+            dialog = new AlertMessage("Must select building", "Please select a building, or a combination of building and room.");
+            dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
+        }
+        else if ((!selectedBuildingItem.equals("<Select Building>")) && (selectedRoomItem.equals("<Select Room#>"))) {
+            intent = new Intent(this, BuildingActivity.class);
+            intent.setAction(Intent.ACTION_SEND);
+            intent.putExtra(BUILDING_MSG, selectedBuildingItem);
+            intent.setType("text/plain");
+            startActivity(intent);
         }
         else {
             intent = new Intent(this, LocationActivity.class);

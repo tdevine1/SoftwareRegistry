@@ -5,6 +5,7 @@ package edu.fairmontstate.softwarefinder;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -14,11 +15,11 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Vector;
 
-public class SoftwareLocatedQuery extends AsyncTask<String, Void, Vector<String>> {
+public class SoftwareBuildingQuery extends AsyncTask<String, Void, Vector<String>> {
     Context context;
     ArrayAdapter<String> arrayAdapter;
     ListView listView;
-    Vector<String> locationList;
+    Vector<String> softwareList;
     URL url;
     URLConnection conn;
     BufferedReader br;
@@ -27,7 +28,7 @@ public class SoftwareLocatedQuery extends AsyncTask<String, Void, Vector<String>
     String splitStr;
     String[] rowArray;
 
-    public SoftwareLocatedQuery(Context context, ArrayAdapter<String> arrayAdapter, ListView listView) {
+    public SoftwareBuildingQuery(Context context, ArrayAdapter<String> arrayAdapter, ListView listView) {
         this.context = context;
         this.arrayAdapter = arrayAdapter;
         this.listView = listView;
@@ -38,11 +39,12 @@ public class SoftwareLocatedQuery extends AsyncTask<String, Void, Vector<String>
     public Vector<String> doInBackground(String... urls) {
 
         try {
+            Log.v("URL:", urls[0]);
             url = new URL(urls[0]);
             conn = url.openConnection();
             br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             sb = new StringBuilder();
-            locationList = new Vector<String>();
+            softwareList = new Vector<String>();
 
             while ((line = br.readLine()) != null) {
                 if (!line.equals("")) {
@@ -54,9 +56,9 @@ public class SoftwareLocatedQuery extends AsyncTask<String, Void, Vector<String>
             rowArray = splitStr.split("[$]");
 
             for (int i = 0; i < rowArray.length - 1; i++) {
-                locationList.addElement(rowArray[i]);
+                softwareList.addElement(rowArray[i]);
             }
-            return locationList;
+            return softwareList;
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -66,8 +68,8 @@ public class SoftwareLocatedQuery extends AsyncTask<String, Void, Vector<String>
     //================================================================================================================================
     // Method to set the auto complete field with the data.
     @Override
-    public void onPostExecute(Vector<String> locationList) {
-        arrayAdapter = new ArrayAdapter<String>(context, R.layout.custom_list_view, locationList);
+    public void onPostExecute(Vector<String> softwareList) {
+        arrayAdapter = new ArrayAdapter<String>(context, R.layout.custom_list_view, softwareList);
         listView.setAdapter(arrayAdapter);
     } // end method onPostExecute().
 }
