@@ -12,9 +12,7 @@
 	$result = mysqli_query($con, $mysql_query);	// Store query results in a resultset
 	
 	// Print the results of the array.
-	$resultsArray = array();
 	while($row = mysqli_fetch_array($result)) {
-		$resultsArray[] = $row;
 		echo $row[0];
 		echo "$";
 	}

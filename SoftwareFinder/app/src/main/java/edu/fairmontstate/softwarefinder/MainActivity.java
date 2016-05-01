@@ -10,9 +10,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.text.Editable;
 import android.text.InputType;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.widget.*;
 import android.view.View;
@@ -39,6 +37,9 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     public static final String softwareQueryLink = "http://fsu-software-finder.net16.net/softwareNameQuery.php";
     public static final String buildingQueryLink = "http://fsu-software-finder.net16.net/buildingQuery.php";
     public static final String roomQueryLink = "http://fsu-software-finder.net16.net/roomQuery.php";
+    public static final String requestIDQueryLink = "http://fsu-software-finder.net16.net/getRequestIDQuery.php?softwareName=";
+    public static final String updateRequestQueryLink = "http://fsu-software-finder.net16.net/insertRequestTransaction.php?softwareName=";
+    public static final String incrementRequestQueryLink = "http://fsu-software-finder.net16.net/incrementRequestCountTransaction.php?softwareName=";
     public static final String SOFTWARE_MSG = "edu.fairmontstate.softwarefinder.SOFTWARE_MSG";
     public static final String BUILDING_MSG = "edu.fairmontstate.softwarefinder.BUILDING_MSG";
     public static final String ROOM_MSG = "edu.fairmontstate.softwarefinder.ROOM_MSG";
@@ -97,8 +98,6 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         try {
             buildingQuery = new BuildingQuery(this);
             buildingList = buildingQuery.execute(buildingQueryLink).get();
-
-//            buildingAdapter = new ArrayAdapter<String>(this, R.layout.custom_list_view, buildingList);
             buildingAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, buildingList);
             buildingSpinner.setAdapter(buildingAdapter);
         }
@@ -136,10 +135,12 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
             intent.putExtra(SOFTWARE_MSG, selectedSoftware);
             intent.setType("text/plain");
             startActivity(intent);
-        } else if (selectedSoftware.equals("")){
+        }
+        else if (selectedSoftware.equals("")){
             dialog = new AlertMessage("Field Empty", "Please enter software to be searched.");
             dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
-        } else {
+        }
+        else {
             dialog = new AlertMessage("Not Found", "That software doesn't exist in the database.");
             dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
         }
@@ -187,15 +188,19 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 readFile();
                 if (!alreadySubmitted()) {
                     writeSubmissionToFile();
+                    submitUpdateRequest();
                     dialog = new AlertMessage("Thank you!", "Thank you for submitting your update request form!" +
                             " Your request will be approved by the IT Dept. for further review.");
                     dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
-                } else {
+                }
+                else {
                     dialog = new AlertMessage("Already submitted.", "Your update request has already been submitted to the IT Dept.");
                     dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
                 }
-            } else {
+            }
+            else {
                 writeSubmissionToFile();
+                submitUpdateRequest();
                 dialog = new AlertMessage("Thank you!", "Thank you for submitting your update request form!" +
                         " Your request will be approved by the IT Dept. for further review.");
                 dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
@@ -205,7 +210,6 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
             dialog = new AlertMessage("Fields incomplete.", "All fields must have a value before submitting a request.");
             dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
         }
-        //propertyFile.delete();
     } // end method updateRequestButtonClicked().
 //================================================================================================================================
     // Method that invokes the ViewRequestActivity when the view request button is clicked.
@@ -310,6 +314,43 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
             oos.close();
         }
     } // end method writeSubmissionToFile().
+//================================================================================================================================
+    // Method that submits the update request for the particular software in the particular location.
+    public void submitUpdateRequest() {
+        RequestIDQuery requestIDQuery;
+        InsertRequestTransaction insertRequestTransaction;
+        IncrementRequestTransaction incrementRequestTransaction;
+        String softwareName;
+        String buildingName;
+        String roomNumber;
+        String result;
+
+        softwareName = softwareView.getText().toString().trim();
+        buildingName = selectedBuildingItem.trim();
+        roomNumber = selectedRoomItem.trim();
+
+        try {
+            buildingName = buildingName.replace(" ", "%20");
+            roomNumber = roomNumber.replace(" ", "%20");
+            requestIDQuery = new RequestIDQuery(this);
+            result = requestIDQuery.execute(requestIDQueryLink + softwareName + "&buildingName=" + buildingName + "&roomNumber=" + roomNumber).get();
+
+            // If null, replace NULL field with new request id
+            if (result.isEmpty()) {
+                insertRequestTransaction = new InsertRequestTransaction(this);
+                insertRequestTransaction.execute(updateRequestQueryLink + softwareName + "&buildingName=" + buildingName + "&roomNumber=" + roomNumber);
+            }
+            // If not null, increment request count
+            else {
+                incrementRequestTransaction = new IncrementRequestTransaction(this);
+                incrementRequestTransaction.execute(incrementRequestQueryLink + softwareName + "&buildingName=" + buildingName + "&roomNumber=" + roomNumber);
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    } // end method submitUpdateRequest().
 //================================================================================================================================
     // Method that listens for items selected in any of the spinners.
     public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
