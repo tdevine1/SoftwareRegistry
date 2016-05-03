@@ -11,7 +11,6 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.text.InputType;
-import android.util.Log;
 import android.widget.*;
 import android.view.View;
 import android.content.Intent;
@@ -34,12 +33,6 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     String selectedBuildingItem;
     String selectedRoomItem;
     File propertyFile;
-    public static final String softwareQueryLink = "http://fsu-software-finder.net16.net/softwareNameQuery.php";
-    public static final String buildingQueryLink = "http://fsu-software-finder.net16.net/buildingQuery.php";
-    public static final String roomQueryLink = "http://fsu-software-finder.net16.net/roomQuery.php";
-    public static final String requestIDQueryLink = "http://fsu-software-finder.net16.net/getRequestIDQuery.php?softwareName=";
-    public static final String updateRequestQueryLink = "http://fsu-software-finder.net16.net/insertRequestTransaction.php?softwareName=";
-    public static final String incrementRequestQueryLink = "http://fsu-software-finder.net16.net/incrementRequestCountTransaction.php?softwareName=";
     public static final String SOFTWARE_MSG = "edu.fairmontstate.softwarefinder.SOFTWARE_MSG";
     public static final String BUILDING_MSG = "edu.fairmontstate.softwarefinder.BUILDING_MSG";
     public static final String ROOM_MSG = "edu.fairmontstate.softwarefinder.ROOM_MSG";
@@ -84,7 +77,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
         try {
             softwareQuery = new SoftwareQuery(this, softwareAdapter, softwareView);
-            softwareList = softwareQuery.execute(softwareQueryLink).get();
+            softwareList = softwareQuery.execute(QueryLinks.SOFTWARE_QUERY_LINK).get();
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -97,7 +90,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
         try {
             buildingQuery = new BuildingQuery(this);
-            buildingList = buildingQuery.execute(buildingQueryLink).get();
+            buildingList = buildingQuery.execute(QueryLinks.BUILDING_QUERY_LINK).get();
             buildingAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, buildingList);
             buildingSpinner.setAdapter(buildingAdapter);
         }
@@ -112,7 +105,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
         try {
             roomQuery = new RoomQuery(this);
-            roomList = roomQuery.execute(roomQueryLink).get();
+            roomList = roomQuery.execute(QueryLinks.ROOM_QUERY_LINK).get();
 
             roomAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, roomList);
             roomSpinner.setAdapter(roomAdapter);
@@ -320,30 +313,63 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         RequestIDQuery requestIDQuery;
         InsertRequestTransaction insertRequestTransaction;
         IncrementRequestTransaction incrementRequestTransaction;
+        InsertNewSoftwareRequestTransaction insertNewSoftwareRequestTransaction;
+        AllSoftwareNameQuery allSoftwareNameQuery;
         String softwareName;
         String buildingName;
         String roomNumber;
         String result;
+        Vector<String> tempList;
 
         softwareName = softwareView.getText().toString().trim();
         buildingName = selectedBuildingItem.trim();
         roomNumber = selectedRoomItem.trim();
 
         try {
+            softwareName = softwareName.replace(" ", "%20");
             buildingName = buildingName.replace(" ", "%20");
             roomNumber = roomNumber.replace(" ", "%20");
-            requestIDQuery = new RequestIDQuery(this);
-            result = requestIDQuery.execute(requestIDQueryLink + softwareName + "&buildingName=" + buildingName + "&roomNumber=" + roomNumber).get();
 
-            // If null, replace NULL field with new request id
-            if (result.isEmpty()) {
-                insertRequestTransaction = new InsertRequestTransaction(this);
-                insertRequestTransaction.execute(updateRequestQueryLink + softwareName + "&buildingName=" + buildingName + "&roomNumber=" + roomNumber);
+            if (softwareList.contains(softwareName)) {
+                requestIDQuery = new RequestIDQuery(this);
+                result = requestIDQuery.execute(QueryLinks.REQUEST_ID_QUERY_LINK + softwareName + "&buildingName=" + buildingName + "&roomNumber=" + roomNumber).get();
+
+                // If null, replace NULL field with new request id
+                if (result.isEmpty()) {
+                    insertRequestTransaction = new InsertRequestTransaction(this);
+                    insertRequestTransaction.execute(QueryLinks.UPDATE_REQUEST_QUERY_LINK + softwareName + "&buildingName=" + buildingName + "&roomNumber=" + roomNumber);
+                }
+                // If not null, increment request count
+                else {
+                    incrementRequestTransaction = new IncrementRequestTransaction(this);
+                    incrementRequestTransaction.execute(QueryLinks.INCREMENT_REQUEST_QUERY_LINK + softwareName + "&buildingName=" + buildingName + "&roomNumber=" + roomNumber);
+                }
             }
-            // If not null, increment request count
             else {
-                incrementRequestTransaction = new IncrementRequestTransaction(this);
-                incrementRequestTransaction.execute(incrementRequestQueryLink + softwareName + "&buildingName=" + buildingName + "&roomNumber=" + roomNumber);
+                requestIDQuery = new RequestIDQuery(this);
+                result = requestIDQuery.execute(QueryLinks.REQUEST_ID_QUERY_LINK + softwareName + "&buildingName=" + buildingName + "&roomNumber=" + roomNumber).get();
+
+                // If null, insert request for new software in the specified location
+                if (result.isEmpty()) {
+                    allSoftwareNameQuery = new AllSoftwareNameQuery(this);
+                    tempList = allSoftwareNameQuery.execute(QueryLinks.ALL_SOFTWARE_NAME_QUERY_LINK).get();
+
+                    // If the software name is already in the table, just add the information to the Located_in and Requests tables
+                    if (tempList.contains(softwareName)) {
+                        insertNewSoftwareRequestTransaction = new InsertNewSoftwareRequestTransaction(this);
+                        insertNewSoftwareRequestTransaction.execute(QueryLinks.NEW_LOCATED_IN_REQUEST_QUERY_LINK + softwareName + "&buildingName=" + buildingName + "&roomNumber=" + roomNumber);
+                    }
+                    // Otherwise, add the new software name to the table as well as the Located_in and Requests tables
+                    else {
+                        insertNewSoftwareRequestTransaction = new InsertNewSoftwareRequestTransaction(this);
+                        insertNewSoftwareRequestTransaction.execute(QueryLinks.INSERT_NEW_UPDATE_REQUEST_QUERY_LINK + softwareName + "&buildingName=" + buildingName + "&roomNumber=" + roomNumber);
+                    }
+                }
+                // If not null, increment request count of (unapproved) update request
+                else {
+                    incrementRequestTransaction = new IncrementRequestTransaction(this);
+                    incrementRequestTransaction.execute(QueryLinks.INCREMENT_REQUEST_QUERY_LINK + softwareName + "&buildingName=" + buildingName + "&roomNumber=" + roomNumber);
+                }
             }
         }
         catch (Exception e) {

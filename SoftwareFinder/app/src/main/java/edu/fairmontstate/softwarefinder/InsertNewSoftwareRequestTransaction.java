@@ -1,4 +1,4 @@
-/* Class that handles execution of the transaction to increment existing update requests in the database.
+/* Class that handles execution of the transaction to add new update requests to the database of completely new software.
  *
  */
 package edu.fairmontstate.softwarefinder;
@@ -9,13 +9,13 @@ import android.os.AsyncTask;
 import java.net.*;
 import java.io.*;
 
-public class IncrementRequestTransaction extends AsyncTask<String, Void, String> {
+public class InsertNewSoftwareRequestTransaction extends AsyncTask<String, Void, String> {
     Context context;
     URL url;
     URLConnection conn;
     BufferedReader br;
 
-    public IncrementRequestTransaction(Context context) {
+    public InsertNewSoftwareRequestTransaction(Context context) {
         this.context = context;
     } // end constructor.
     //================================================================================================================================

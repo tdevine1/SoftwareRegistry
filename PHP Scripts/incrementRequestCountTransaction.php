@@ -7,7 +7,7 @@
 	$software_name = $_GET['softwareName'];
 	$building_name = $_GET['buildingName'];
 	$room_number = $_GET['roomNumber'];
-
+	
 	$mysql_transaction = "UPDATE Software, Location, Located_in, Requests
 						  SET request_count = request_count + 1
 						  WHERE id_software = soft_id AND loc_id = id_location AND req_id = id_request

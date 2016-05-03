@@ -5,7 +5,6 @@ package edu.fairmontstate.softwarefinder;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import java.net.*;

@@ -1,4 +1,4 @@
-/* Class that handles execution of the query to get the locations of the specified software.
+/* Class that handles execution of the query to get the software names of the specified location.
  *
  */
 package edu.fairmontstate.softwarefinder;

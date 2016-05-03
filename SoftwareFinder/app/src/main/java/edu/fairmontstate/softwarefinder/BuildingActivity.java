@@ -12,7 +12,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 public class BuildingActivity extends ActionBarActivity {
-    public final String softwareQueryLink = "http://fsu-software-finder.net16.net/softwareBuildingQuery.php?buildingName=";
     Toolbar toolbar;
     Drawable backArrow;
     Intent intent;
@@ -51,6 +50,6 @@ public class BuildingActivity extends ActionBarActivity {
         buildingItem = buildingItem.replace(" ", "%20");
 
         softwareBuildingQuery = new SoftwareBuildingQuery(this, arrayAdapter, listView);
-        softwareBuildingQuery.execute(softwareQueryLink + buildingItem);
+        softwareBuildingQuery.execute(QueryLinks.SOFTWARE_BUILDING_QUERY_LINK + buildingItem);
     } // end method onCreate().
 } // end class LocationActivity.

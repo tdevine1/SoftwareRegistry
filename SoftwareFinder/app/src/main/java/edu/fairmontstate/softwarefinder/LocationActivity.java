@@ -12,7 +12,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 public class LocationActivity extends ActionBarActivity {
-    public final String softwareQueryLink = "http://fsu-software-finder.net16.net/locationSoftwareQuery.php?buildingName=";
     Toolbar toolbar;
     Drawable backArrow;
     Intent intent;
@@ -54,6 +53,6 @@ public class LocationActivity extends ActionBarActivity {
         roomItem = roomItem.replace(" ", "%20");
 
         softwareLocatedQuery = new SoftwareLocatedQuery(this, arrayAdapter, listView);
-        softwareLocatedQuery.execute(softwareQueryLink + buildingItem + "&roomNumber=" + roomItem);
+        softwareLocatedQuery.execute(QueryLinks.LOCATION_SOFTWARE_QUERY_LINK + buildingItem + "&roomNumber=" + roomItem);
     } // end method onCreate().
 } // end class LocationActivity.

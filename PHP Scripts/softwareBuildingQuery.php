@@ -5,8 +5,12 @@
 	$mysql_user = "fsusoftw_user";
 	$mysql_password = "fsu-admin";
 	$building_name = $_GET['buildingName'];
-	$mysql_query = "SELECT DISTINCT s.software_name FROM Software s, Location l, Located_in loc WHERE l.building = '$building_name' AND 
-		l.id_location = loc.loc_id AND loc.soft_id = s.id_software";
+	
+	$mysql_query = "SELECT DISTINCT software_name 
+					FROM Software, Location, Located_in 
+					WHERE building = '$building_name' 
+					AND id_location = loc_id 
+					AND soft_id = id_software";
 
 	// Check connection 
 	$con = mysqli_connect($mysql_host, $mysql_user, $mysql_password, $mysql_database); 

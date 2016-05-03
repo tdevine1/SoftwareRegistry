@@ -5,7 +5,12 @@
 	$mysql_user = "fsusoftw_user";
 	$mysql_password = "fsu-admin";
 	$software_name = $_GET['softwareName'];
-	$mysql_query = "SELECT l.building, l.room FROM Software s, Location l, Located_in loc WHERE s.software_name = '$software_name' AND s.id_software = loc.soft_id AND loc.loc_id = l.id_location";
+
+	$mysql_query = "SELECT building, room 
+					FROM Software, Location, Located_in 
+					WHERE software_name = '$software_name' 
+				    AND id_software = soft_id 
+				    AND loc_id = id_location";
 
 	// Check connection 
 	$con = mysqli_connect($mysql_host, $mysql_user, $mysql_password, $mysql_database); 

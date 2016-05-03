@@ -4,7 +4,8 @@
 	$mysql_database = "fsusoftw_database";
 	$mysql_user = "fsusoftw_user";
 	$mysql_password = "fsu-admin";
-	$mysql_query = "SELECT software_name FROM Software";
+	
+	$mysql_query = "SELECT software_name FROM Software WHERE approved = 'Yes'";
 	
 	// Check connection 
 	$con = mysqli_connect($mysql_host, $mysql_user, $mysql_password, $mysql_database); 
