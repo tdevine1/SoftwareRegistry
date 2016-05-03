@@ -10,6 +10,8 @@ Login Credentials:
 	email: dpoling6@students.fairmontstate.edu
 	password: fsu_admin
 	database name: fsusoftw-database (include this in any PHP files)
+	cPanel username: fsusoftw
+	cPanel password: fsu-admin1
 
 Database user credentials (include these in any PHP files):
 	username: fsusoftw_user
