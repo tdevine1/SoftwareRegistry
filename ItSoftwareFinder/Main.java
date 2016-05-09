@@ -255,7 +255,7 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener, Mous
 		dbData.addElement(room);
 		dbRows.addElement(dbData);
 		dbT.repaint();
-		updateDatabase(software, building, room);// call to update the database
+		//updateDatabase(software, building, room);// call to update the database
 	}//***************************************************************************************
 	// used to add entries to the database based on the text fields executed when the add button is pressed
 	// also add to the database table
@@ -270,7 +270,7 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener, Mous
 		dbData.addElement(room);
 		dbRows.addElement(dbData);
 		dbT.repaint();
-		insertIntoDatabase(software, building, room);// call to update database
+		//insertIntoDatabase(software, building, room);// call to update database
 	}//***************************************************************************************
 	// this add to the database if the add is pressed and the textfields have data
 	public void insertIntoDatabase(String software, String building, String room){
@@ -280,44 +280,21 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener, Mous
 		int locationID = ++maxLocationID;
 		int softwareID = ++maxSoftwareID;
 
-		/*try{
-			query = "select S.id_software from Software S ";
-			query = query + "where S.software_name = '" + software + "'";
-			st = con.prepareStatement(query);
-			rs = st.executeQuery();
-			while(rs.next()){
-				softwareID = rs.getInt("id_software");
-			}
-			query = "select L.id_location from Location L ";
-			query = query + "where L.building LIKE '%" + building + "%' " + "AND L.room LIKE '%" + room + "%'";
-			st = con.prepareStatement(query);
-			rs = st.executeQuery();
-			while(rs.next()){
-				locationID = rs.getInt("id_location");
-			}
-			if(softwareID < maxSoftwareID || softwareID > 0)
-				softwareID = ++maxSoftwareID;
-			if(locationID > maxLocationID || locationID > 0)
-				locationID = ++maxLocationID;
-		}catch (SQLException e) {
-			e.printStackTrace();
-			System.out.println("Error: " + e);
-		}*/
 		try{
 			query = "insert into Located_in(soft_id, loc_id, req_id) ";
 			query = query + "values(" + softwareID + "," + locationID + ", '')";
 			st = con.prepareStatement(query);
-			st.executeUpdate();
+			st.execute();
 
 			query = "insert into Software(id_software, software_name, approved) ";
 			query = query + "values(" + softwareID + ",'" + software + "', 'Yes')";
 			st = con.prepareStatement(query);
-			st.executeUpdate();
+			st.execute();
 
 			query = "insert into Location(id_location, building, room) ";
 			query = query + "values(" + locationID + ",'" + building + "','" + room + "')";
 			st = con.prepareStatement(query);
-			st.executeUpdate();
+			st.execute();
 
 		}catch(SQLException e){
 			e.printStackTrace();
@@ -330,38 +307,14 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener, Mous
 		PreparedStatement st;
 		ResultSet rs;
 		String query;
-		int locationID = 0;
-		int softwareID = 0;
 
 		try{
-			query = "select S.id_software AS 'id_software' from Software S ";
-			query = query + "where S.software_name = '" + software + "'";
-			st = con.prepareStatement(query);
-			rs = st.executeQuery();
-			rs.next();
-			softwareID = rs.getInt("id_software");
-
-			query = "select Location.id_location AS 'id_location' from Location L ";
-			query = query + "where L.building LIKE '%" + building + "%' " + "AND L.room LIKE '%" + room + "%'";
-			st = con.prepareStatement(query);
-			rs = st.executeQuery();
-			rs.next();
-			locationID = rs.getInt("id_location");
-			if(softwareID < 0 || softwareID > maxSoftwareID)
-				softwareID = ++maxSoftwareID;
-			if(locationID < 0 || locationID > maxLocationID)
-				locationID = ++maxLocationID;
-		}catch (SQLException e) {
-			e.printStackTrace();
-			System.out.println("Error: " + e);
-		}
-		try{
-			query = "update Located_in,Software,Location";
-			query = query + "set  approved = ?  ";
+			query = "update Located_in,Software,Location,Requests ";
+			query = query + "set  approved = 'Yes' ";
 			query = query + "WHERE Located_in.soft_id = Software.id_software AND Located_in.loc_id = Location.id_location ";
+			query = query + "AND Software.software_name = '" + software + "' AND Location.building = '" + building + "'";
+			query = query + " AND Location.room = '" + room + "' AND Requests.id_request = ''";
 			st = con.prepareStatement(query);
-			st.clearParameters();
-			st.setString(1,"Yes");
 			st.execute();
 		}catch(SQLException e){
 			e.printStackTrace();
@@ -369,9 +322,46 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener, Mous
 		}
 	}//***************************************************************************************
 	// this deletes the selected entry form the database
-	public void deleteFromDatabase(){
+	// deleteFromWhere desides whether to delete form database or request tables
+	public void deleteFromDatabase(String deleteFromWhere){
+		PreparedStatement st;
+		ResultSet rs;
+		String query;
+		String software;
+		String building;
+		String room;
 
-
+		if(deleteFromWhere.equals("request")){
+			software = rTM.getValueAt(rT.getSelectedRow(), 0).toString();
+			building = rTM.getValueAt(rT.getSelectedRow(), 1).toString();
+			room = rTM.getValueAt(rT.getSelectedRow(), 2).toString();
+			try{
+				query = "delete from Located_in,Software,Location,Requests ";
+				query = query + "WHERE Located_in.soft_id = Software.id_software AND Located_in.loc_id = Location.id_location AND ";
+				query = query + "Located_in.req_id = Request.id_request AND Software.software_name = '" + software + "' AND ";
+				query = query + "Location.building = '" + building + "' AND Location.room = '" + room + "'";
+				st = con.prepareStatement(query);
+				st.execute();
+			}catch(SQLException e){
+				e.printStackTrace();
+				System.out.println("Error: " + e);
+			}
+		}else if(deleteFromWhere.equals("database")){
+			software = dbTM.getValueAt(dbT.getSelectedRow(), 0).toString();
+			building = dbTM.getValueAt(dbT.getSelectedRow(), 1).toString();
+			room = dbTM.getValueAt(dbT.getSelectedRow(), 2).toString();
+			try{
+				query = "delete from Located_in,Software,Location,Requests ";
+				query = query + "WHERE Located_in.soft_id = Software.id_software AND Located_in.loc_id = Location.id_location ";
+				query = query + "AND Software.software_name = '" + software + "' AND Location.building = '" + building + "'";
+				query = query + " AND Location.room = '" + room + "' AND Requests.id_request = ''";
+				st = con.prepareStatement(query);
+				st.execute();
+			}catch(SQLException e){
+				e.printStackTrace();
+				System.out.println("Error: " + e);
+			}
+		}
 	}//***************************************************************************************
 	// populates the database when the program is first executed
 	public void populateDatbaseTable(){
@@ -472,26 +462,23 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener, Mous
 
 			//checks to see if a row was selected in the request table
 			if(requestRow > -1){
-				 // joptionpane used to check if user wants to add to databse before deleteing
-				 int reply = JOptionPane.showConfirmDialog(null, "Would you like to add row to database?",
-						 "", JOptionPane.YES_NO_OPTION);
-				 if(reply == JOptionPane.YES_OPTION){
-					 addRowFromRequest();
-					 rRows.remove(rT.getSelectedRow());
-					 rT.clearSelection();
-					 rT.repaint();
-				 }else {
-					 deleteFromDatabase();// used to delete it from databse
-					 rRows.remove(rT.getSelectedRow());
-					 rT.clearSelection();
-					 rT.repaint();
-				 }
+				// joptionpane used to check if user wants to add to databse before deleteing
+				int reply = JOptionPane.showConfirmDialog(null, "Would you like to add row to database?",
+					 "", JOptionPane.YES_NO_OPTION);
+				if(reply == JOptionPane.YES_OPTION){
+					addRowFromRequest();
+				}else {
+					// deleteFromDatabase("request");// used to delete it from databse
+					rRows.remove(rT.getSelectedRow());
+					rT.clearSelection();
+					rT.repaint();
+				}
 			// checks if databse table was selected if so the delete
 			}else if(databaseRow > -1){
+				//deleteFromDatabase("database");// used to delete form databse
 				dbRows.remove(dbT.getSelectedRow());
 				dbT.clearSelection();
 				dbT.repaint();
-				deleteFromDatabase();// used to delete form databse
 			}
 		}else if(e.getSource() == logoutButton){
 			this.dispose();
