@@ -10,10 +10,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.text.Editable;
 import android.text.InputType;
-import android.text.TextWatcher;
-import android.util.Log;
 import android.widget.*;
 import android.view.View;
 import android.content.Intent;
@@ -36,9 +33,6 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     String selectedBuildingItem;
     String selectedRoomItem;
     File propertyFile;
-    public static final String softwareQueryLink = "http://fsu-software-finder.net16.net/softwareNameQuery.php";
-    public static final String buildingQueryLink = "http://fsu-software-finder.net16.net/buildingQuery.php";
-    public static final String roomQueryLink = "http://fsu-software-finder.net16.net/roomQuery.php";
     public static final String SOFTWARE_MSG = "edu.fairmontstate.softwarefinder.SOFTWARE_MSG";
     public static final String BUILDING_MSG = "edu.fairmontstate.softwarefinder.BUILDING_MSG";
     public static final String ROOM_MSG = "edu.fairmontstate.softwarefinder.ROOM_MSG";
@@ -83,7 +77,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
         try {
             softwareQuery = new SoftwareQuery(this, softwareAdapter, softwareView);
-            softwareList = softwareQuery.execute(softwareQueryLink).get();
+            softwareList = softwareQuery.execute(QueryLinks.SOFTWARE_QUERY_LINK).get();
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -96,9 +90,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
         try {
             buildingQuery = new BuildingQuery(this);
-            buildingList = buildingQuery.execute(buildingQueryLink).get();
-
-//            buildingAdapter = new ArrayAdapter<String>(this, R.layout.custom_list_view, buildingList);
+            buildingList = buildingQuery.execute(QueryLinks.BUILDING_QUERY_LINK).get();
             buildingAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, buildingList);
             buildingSpinner.setAdapter(buildingAdapter);
         }
@@ -113,7 +105,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
         try {
             roomQuery = new RoomQuery(this);
-            roomList = roomQuery.execute(roomQueryLink).get();
+            roomList = roomQuery.execute(QueryLinks.ROOM_QUERY_LINK).get();
 
             roomAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, roomList);
             roomSpinner.setAdapter(roomAdapter);
@@ -136,10 +128,12 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
             intent.putExtra(SOFTWARE_MSG, selectedSoftware);
             intent.setType("text/plain");
             startActivity(intent);
-        } else if (selectedSoftware.equals("")){
+        }
+        else if (selectedSoftware.equals("")){
             dialog = new AlertMessage("Field Empty", "Please enter software to be searched.");
             dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
-        } else {
+        }
+        else {
             dialog = new AlertMessage("Not Found", "That software doesn't exist in the database.");
             dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
         }
@@ -150,9 +144,20 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         Intent intent;
         DialogFragment dialog;
 
-        if (selectedBuildingItem.equals("<Select Building>") || selectedRoomItem.equals("<Select Room#>")) {
+        if (selectedBuildingItem.equals("<Select Building>") && selectedRoomItem.equals("<Select Room#>")) {
             dialog = new AlertMessage("No location selected", "Please select a valid loction");
             dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
+        }
+        else if ((selectedBuildingItem.equals("<Select Building>")) && (!selectedRoomItem.equals("<Select Room#>"))) {
+            dialog = new AlertMessage("Must select building", "Please select a building, or a combination of building and room.");
+            dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
+        }
+        else if ((!selectedBuildingItem.equals("<Select Building>")) && (selectedRoomItem.equals("<Select Room#>"))) {
+            intent = new Intent(this, BuildingActivity.class);
+            intent.setAction(Intent.ACTION_SEND);
+            intent.putExtra(BUILDING_MSG, selectedBuildingItem);
+            intent.setType("text/plain");
+            startActivity(intent);
         }
         else {
             intent = new Intent(this, LocationActivity.class);
@@ -176,15 +181,19 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 readFile();
                 if (!alreadySubmitted()) {
                     writeSubmissionToFile();
+                    submitUpdateRequest();
                     dialog = new AlertMessage("Thank you!", "Thank you for submitting your update request form!" +
                             " Your request will be approved by the IT Dept. for further review.");
                     dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
-                } else {
+                }
+                else {
                     dialog = new AlertMessage("Already submitted.", "Your update request has already been submitted to the IT Dept.");
                     dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
                 }
-            } else {
+            }
+            else {
                 writeSubmissionToFile();
+                submitUpdateRequest();
                 dialog = new AlertMessage("Thank you!", "Thank you for submitting your update request form!" +
                         " Your request will be approved by the IT Dept. for further review.");
                 dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
@@ -194,7 +203,6 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
             dialog = new AlertMessage("Fields incomplete.", "All fields must have a value before submitting a request.");
             dialog.show(getFragmentManager(), "AlertMessageFragmentTag");
         }
-        //propertyFile.delete();
     } // end method updateRequestButtonClicked().
 //================================================================================================================================
     // Method that invokes the ViewRequestActivity when the view request button is clicked.
@@ -299,6 +307,76 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
             oos.close();
         }
     } // end method writeSubmissionToFile().
+//================================================================================================================================
+    // Method that submits the update request for the particular software in the particular location.
+    public void submitUpdateRequest() {
+        RequestIDQuery requestIDQuery;
+        InsertRequestTransaction insertRequestTransaction;
+        IncrementRequestTransaction incrementRequestTransaction;
+        InsertNewSoftwareRequestTransaction insertNewSoftwareRequestTransaction;
+        AllSoftwareNameQuery allSoftwareNameQuery;
+        String softwareName;
+        String buildingName;
+        String roomNumber;
+        String result;
+        Vector<String> tempList;
+
+        softwareName = softwareView.getText().toString().trim();
+        buildingName = selectedBuildingItem.trim();
+        roomNumber = selectedRoomItem.trim();
+
+        try {
+            softwareName = softwareName.replace(" ", "%20");
+            buildingName = buildingName.replace(" ", "%20");
+            roomNumber = roomNumber.replace(" ", "%20");
+
+            if (softwareList.contains(softwareName)) {
+                requestIDQuery = new RequestIDQuery(this);
+                result = requestIDQuery.execute(QueryLinks.REQUEST_ID_QUERY_LINK + softwareName + "&buildingName=" + buildingName + "&roomNumber=" + roomNumber).get();
+
+                // If null, replace NULL field with new request id
+                if (result.isEmpty()) {
+                    insertRequestTransaction = new InsertRequestTransaction(this);
+                    insertRequestTransaction.execute(QueryLinks.UPDATE_REQUEST_QUERY_LINK + softwareName + "&buildingName=" + buildingName + "&roomNumber=" + roomNumber);
+                }
+                // If not null, increment request count
+                else {
+                    incrementRequestTransaction = new IncrementRequestTransaction(this);
+                    incrementRequestTransaction.execute(QueryLinks.INCREMENT_REQUEST_QUERY_LINK + softwareName + "&buildingName=" + buildingName + "&roomNumber=" + roomNumber);
+                }
+            }
+            else {
+                requestIDQuery = new RequestIDQuery(this);
+                result = requestIDQuery.execute(QueryLinks.REQUEST_ID_QUERY_LINK + softwareName + "&buildingName=" + buildingName + "&roomNumber=" + roomNumber).get();
+
+                // If null, insert request for new software in the specified location
+                if (result.isEmpty()) {
+                    allSoftwareNameQuery = new AllSoftwareNameQuery(this);
+                    tempList = allSoftwareNameQuery.execute(QueryLinks.ALL_SOFTWARE_NAME_QUERY_LINK).get();
+
+                    // If the software name is already in the table, just add the information to the Located_in and Requests tables
+                    if (tempList.contains(softwareName)) {
+                        insertNewSoftwareRequestTransaction = new InsertNewSoftwareRequestTransaction(this);
+                        insertNewSoftwareRequestTransaction.execute(QueryLinks.NEW_LOCATED_IN_REQUEST_QUERY_LINK + softwareName + "&buildingName=" + buildingName + "&roomNumber=" + roomNumber);
+                    }
+                    // Otherwise, add the new software name to the table as well as the Located_in and Requests tables
+                    else {
+                        insertNewSoftwareRequestTransaction = new InsertNewSoftwareRequestTransaction(this);
+                        insertNewSoftwareRequestTransaction.execute(QueryLinks.INSERT_NEW_UPDATE_REQUEST_QUERY_LINK + softwareName + "&buildingName=" + buildingName + "&roomNumber=" + roomNumber);
+                    }
+                }
+                // If not null, increment request count of (unapproved) update request
+                else {
+                    incrementRequestTransaction = new IncrementRequestTransaction(this);
+                    incrementRequestTransaction.execute(QueryLinks.INCREMENT_REQUEST_QUERY_LINK + softwareName + "&buildingName=" + buildingName + "&roomNumber=" + roomNumber);
+                }
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    } // end method submitUpdateRequest().
 //================================================================================================================================
     // Method that listens for items selected in any of the spinners.
     public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {

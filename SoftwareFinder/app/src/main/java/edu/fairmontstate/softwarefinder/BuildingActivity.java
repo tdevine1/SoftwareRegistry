@@ -11,16 +11,15 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class LocationActivity extends ActionBarActivity {
+public class BuildingActivity extends ActionBarActivity {
     Toolbar toolbar;
     Drawable backArrow;
     Intent intent;
     TextView textView;
     String buildingItem;
-    String roomItem;
     ArrayAdapter<String> arrayAdapter;
     ListView listView;
-    SoftwareLocatedQuery softwareLocatedQuery;
+    SoftwareBuildingQuery softwareBuildingQuery;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,18 +40,16 @@ public class LocationActivity extends ActionBarActivity {
 
         intent = getIntent();
         buildingItem = intent.getStringExtra(MainActivity.BUILDING_MSG);
-        roomItem = intent.getStringExtra(MainActivity.ROOM_MSG);
 
         textView = (TextView)findViewById(R.id.titleViewLocation);
         listView = (ListView)findViewById(R.id.listViewLocation);
 
-        textView.setText("Software in Location" +  ": " + buildingItem + " " + roomItem);
+        textView.setText("Software in Building" +  ": " + buildingItem);
 
         // Replace all spaces with '%20' for URL syntax.
         buildingItem = buildingItem.replace(" ", "%20");
-        roomItem = roomItem.replace(" ", "%20");
 
-        softwareLocatedQuery = new SoftwareLocatedQuery(this, arrayAdapter, listView);
-        softwareLocatedQuery.execute(QueryLinks.LOCATION_SOFTWARE_QUERY_LINK + buildingItem + "&roomNumber=" + roomItem);
+        softwareBuildingQuery = new SoftwareBuildingQuery(this, arrayAdapter, listView);
+        softwareBuildingQuery.execute(QueryLinks.SOFTWARE_BUILDING_QUERY_LINK + buildingItem);
     } // end method onCreate().
 } // end class LocationActivity.

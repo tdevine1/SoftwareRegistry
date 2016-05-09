@@ -1,20 +1,16 @@
-/* Class that handles execution of the query to get the software names.
+/* Class that handles execution of the query to get ALL of the software names (including unapproved).
  *
  */
 package edu.fairmontstate.softwarefinder;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import java.net.*;
 import java.io.*;
 import java.util.Vector;
 
-public class SoftwareQuery extends AsyncTask<String, Void, Vector<String>> {
+public class AllSoftwareNameQuery extends AsyncTask<String, Void, Vector<String>> {
     Context context;
-    ArrayAdapter<String> softwareAdapter;
-    AutoCompleteTextView softwareView;
     URL url;
     URLConnection conn;
     BufferedReader br;
@@ -24,12 +20,10 @@ public class SoftwareQuery extends AsyncTask<String, Void, Vector<String>> {
     Vector<String> itemList;
     String[] rowArray;
 
-    public SoftwareQuery(Context context, ArrayAdapter<String> softwareAdapter, AutoCompleteTextView softwareView) {
+    public AllSoftwareNameQuery(Context context) {
         this.context = context;
-        this.softwareAdapter = softwareAdapter;
-        this.softwareView = softwareView;
     } // end constructor.
-//================================================================================================================================
+    //================================================================================================================================
     // Method to get the output of the php execution from the link.
     @Override
     protected Vector<String> doInBackground(String... urls) {
@@ -59,11 +53,10 @@ public class SoftwareQuery extends AsyncTask<String, Void, Vector<String>> {
             return null;
         }
     } // end method doInBackground().
-//================================================================================================================================
+    //================================================================================================================================
     // Method to set the auto complete field with the data.
     @Override
     protected void onPostExecute(Vector<String> itemList) {
-        softwareAdapter = new ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line, itemList);
-        softwareView.setAdapter(softwareAdapter);
+        // itemList is returned to the caller.
     } // end method onPostExecute().
 } // end class SoftwareQuery.
