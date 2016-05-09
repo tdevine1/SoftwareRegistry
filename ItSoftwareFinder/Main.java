@@ -1,9 +1,12 @@
+//Software Finder Project: This is the Database manipulation program
+//Programer: Michael Dunn
+//This handles the GUI for the database table and request tables as well as field to add to database
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
 import java.util.Vector;
 import java.util.regex.PatternSyntaxException;
-
+import javax.swing.RowFilter;
 import javax.swing.*;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.event.*;
@@ -18,12 +21,13 @@ public class Main {
 }//***************************************************************************************
 class MainFrame extends JFrame implements ActionListener, DocumentListener, MouseListener {
 	Container cp;
+	Connection con;// Connection to databsae
 	DefaultTableModel dbTM;
 	JScrollPane dbJSP;
 	JTable dbT;
 	DefaultTableModel rTM;
 	JScrollPane rJSP;
-	TableRowSorter<TableModel> sorter; 
+	TableRowSorter<DefaultTableModel> sorter;
 	JTable rT;
 	JPanel topPanel;
 	JPanel bottomPanel;
@@ -34,6 +38,7 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener, Mous
 	JButton addButton;
 	JButton removeButton;
 	JButton logoutButton;
+	JTextField searchField;
 	JTextField softwareField;
 	JTextField buildingField;
 	JTextField roomField;
@@ -53,10 +58,20 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener, Mous
 	Vector<String> rCol;
 	Vector<Object> rRows;
 	Vector<Object> rData;
+	Color yellow;// approved color
+	Color red;// approved color
+	int maxSoftwareID;// used to keep track of the max software id in order to add new software
+					   //this will be incremented and then used as the new software id
+	int maxLocationID;// used to keep track of the max location id in order to add new locations
+					   // this will be increments and then used as the new software id
 
-	MainFrame(){
+	//main frame constructor
+	MainFrame(Connection con){
+		// in this constructor the panels and jtables as well as the layout of the GUI is established
+		this. con = con;
 		cp = getContentPane();
 		cp.setLayout(new GridLayout(3,1));
+		maxSoftwareID = 0;
 		gbc = new GridBagConstraints();
 		gbc.weightx = 0.5;
 		gbc.weighty = 0.5;
@@ -65,18 +80,29 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener, Mous
 		groupPanel = new JPanel();
 		buttonPanel = new JPanel();
 		imagePanel = new JPanel();
+		yellow = new Color(253, 184, 19);
+		red = new Color(134, 0, 56);
 
+		buttonPanel.setBackground(red);
+		groupPanel.setBackground(red);
+		topPanel.setBackground(red);
+		bottomPanel.setBackground(red);
+		imagePanel.setBackground(red);
 		softwareField = new JTextField();
 		softwareField.getDocument().addDocumentListener(this);
 		buildingField = new JTextField();
-		buildingField.getDocument().addDocumentListener(this);
 		roomField = new JTextField();
 		roomField.getDocument().addDocumentListener(this);
 		softwareLabel = new JLabel("Software");
+		softwareLabel.setForeground(yellow);
 		buildingLabel = new JLabel("Buidling");
+		buildingLabel.setForeground(yellow);
 		roomLabel = new JLabel("Room");
+		roomLabel.setForeground(yellow);
 		databaseLabel = new JLabel("Database");
+		databaseLabel.setForeground(yellow);
 		requestLabel = new JLabel("Request");
+		requestLabel.setForeground(yellow);
 		imageLabel = new JLabel(new ImageIcon("FairmontLogo.png"));
 		imagePanel.add(imageLabel);
 
@@ -129,18 +155,18 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener, Mous
 		gbc.gridheight = 3;
 		gbc.fill = GridBagConstraints.BOTH;
 		topPanel.add(groupPanel, gbc);
-		
+
 		rCol = new Vector<String>();
 		rCol.addElement("Software");
 		rCol.addElement("Building");
 		rCol.addElement("Room");
 		rCol.addElement("Count");
 		rRows = new Vector<Object>();
-		
+
 		rTM = new DefaultTableModel(rRows, rCol);
 		rT = new JTable(rTM){
 			@Override
-			public boolean isCellEditable ( int row, int col){
+			public boolean isCellEditable ( int row, int col){// prevents the request table from being editable
 				return false;
 			}
 		};
@@ -148,7 +174,7 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener, Mous
 		rT.getTableHeader().setReorderingAllowed(false);
 		rT.setPreferredScrollableViewportSize(new Dimension(900,500));
 		rT.setFillsViewportHeight(true);
-		rT.setSelectionBackground(Color.YELLOW);
+		rT.setSelectionBackground(yellow);
 		rT.setBackground(Color.WHITE);
 		rT.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		rT.addMouseListener(this);
@@ -168,27 +194,27 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener, Mous
 		gbc.weighty = 0.5;
 		gbc.fill = GridBagConstraints.BOTH;
 		topPanel.add(rJSP, gbc);
-		
+
 		dbCol = new Vector<String>();
 		dbCol.addElement("Software");
 		dbCol.addElement("Building");
 		dbCol.addElement("Room");
 		dbRows = new Vector<Object>();
-		
+
 		dbTM = new DefaultTableModel(dbRows, dbCol);
 		dbT = new JTable(dbTM){
 			@Override
-			public boolean isCellEditable ( int row, int col){
+			public boolean isCellEditable ( int row, int col){// prevents the databse from being editable
 				return false;
 			}
 		};
-		sorter = new TableRowSorter<TableModel>(dbTM);
+		sorter = new TableRowSorter<DefaultTableModel>(dbTM);// sorter for the datbase based on the software text field
 		dbT.setRowSorter(sorter);
 		dbT.setVisible(true);
 		dbT.getTableHeader().setReorderingAllowed(false);
 		dbT.setPreferredScrollableViewportSize(new Dimension(700,500));
 		dbT.setFillsViewportHeight(true);
-		dbT.setSelectionBackground(Color.YELLOW);
+		dbT.setSelectionBackground(yellow);
 		dbT.setBackground(Color.WHITE);
 		dbT.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		dbT.addMouseListener(this);
@@ -212,46 +238,161 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener, Mous
 		cp.add(imagePanel);
 		cp.add(topPanel);
 		cp.add(bottomPanel);
-		populateDatbaseTable();
-		populaterequestTable();
+		populateDatbaseTable();// fills the databse table
+		populateRequestTable();// fills the request table
 		setupMainFrame();
 	}//***************************************************************************************
-	void addRowFromRequest(){
+	// used to add request to the database executed when the remove button is pressed and the user clicks yes on joptionpane
+	// also adds to the database table
+	public void addRowFromRequest(){
+		String software = rTM.getValueAt(rT.getSelectedRow(), 0).toString();
+		String building = rTM.getValueAt(rT.getSelectedRow(), 1).toString();
+		String room = rTM.getValueAt(rT.getSelectedRow(), 2).toString();
+
 		dbData = new Vector<Object>();
-		dbData.addElement(rTM.getValueAt(rT.getSelectedRow(), 0));
-		dbData.addElement(rTM.getValueAt(rT.getSelectedRow(), 1));
-		dbData.addElement(rTM.getValueAt(rT.getSelectedRow(), 2));
+		dbData.addElement(software);
+		dbData.addElement(building);
+		dbData.addElement(room);
 		dbRows.addElement(dbData);
 		dbT.repaint();
+		updateDatabase(software, building, room);// call to update the database
 	}//***************************************************************************************
-	void addRowFromTextFields(){
+	// used to add entries to the database based on the text fields executed when the add button is pressed
+	// also add to the database table
+	public void addRowFromTextFields(){
+		String software = softwareField.getText();
+		String building = buildingField.getText();
+		String room = roomField.getText();
+
 		dbData = new Vector<Object>();
-		dbData.addElement(softwareField.getText());
-		dbData.addElement(buildingField.getText());
-		dbData.addElement(roomField.getText());
+		dbData.addElement(software);
+		dbData.addElement(building);
+		dbData.addElement(room);
 		dbRows.addElement(dbData);
 		dbT.repaint();
+		insertIntoDatabase(software, building, room);// call to update database
 	}//***************************************************************************************
-	void populateDatbaseTable(){
-		Connection con;
+	// this add to the database if the add is pressed and the textfields have data
+	public void insertIntoDatabase(String software, String building, String room){
 		PreparedStatement st;
 		ResultSet rs;
 		String query;
-		try {
-			Class.forName("com.mysql.jdbc.Driver");
-		} catch(Exception e){
+		int locationID = ++maxLocationID;
+		int softwareID = ++maxSoftwareID;
+
+		/*try{
+			query = "select S.id_software from Software S ";
+			query = query + "where S.software_name = '" + software + "'";
+			st = con.prepareStatement(query);
+			rs = st.executeQuery();
+			while(rs.next()){
+				softwareID = rs.getInt("id_software");
+			}
+			query = "select L.id_location from Location L ";
+			query = query + "where L.building LIKE '%" + building + "%' " + "AND L.room LIKE '%" + room + "%'";
+			st = con.prepareStatement(query);
+			rs = st.executeQuery();
+			while(rs.next()){
+				locationID = rs.getInt("id_location");
+			}
+			if(softwareID < maxSoftwareID || softwareID > 0)
+				softwareID = ++maxSoftwareID;
+			if(locationID > maxLocationID || locationID > 0)
+				locationID = ++maxLocationID;
+		}catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Error: " + e);
+		}*/
+		try{
+			query = "insert into Located_in(soft_id, loc_id, req_id) ";
+			query = query + "values(" + softwareID + "," + locationID + ", '')";
+			st = con.prepareStatement(query);
+			st.executeUpdate();
+
+			query = "insert into Software(id_software, software_name, approved) ";
+			query = query + "values(" + softwareID + ",'" + software + "', 'Yes')";
+			st = con.prepareStatement(query);
+			st.executeUpdate();
+
+			query = "insert into Location(id_location, building, room) ";
+			query = query + "values(" + locationID + ",'" + building + "','" + room + "')";
+			st = con.prepareStatement(query);
+			st.executeUpdate();
+
+		}catch(SQLException e){
 			e.printStackTrace();
 			System.out.println("Error: " + e);
 		}
+	}//***************************************************************************************
+	// used to update an existing entry in the database from the request field. based on if the remove
+	// was clicked and the user clicked yes on joptionpane
+	public void updateDatabase(String software, String building, String room){
+		PreparedStatement st;
+		ResultSet rs;
+		String query;
+		int locationID = 0;
+		int softwareID = 0;
+
+		try{
+			query = "select S.id_software AS 'id_software' from Software S ";
+			query = query + "where S.software_name = '" + software + "'";
+			st = con.prepareStatement(query);
+			rs = st.executeQuery();
+			rs.next();
+			softwareID = rs.getInt("id_software");
+
+			query = "select Location.id_location AS 'id_location' from Location L ";
+			query = query + "where L.building LIKE '%" + building + "%' " + "AND L.room LIKE '%" + room + "%'";
+			st = con.prepareStatement(query);
+			rs = st.executeQuery();
+			rs.next();
+			locationID = rs.getInt("id_location");
+			if(softwareID < 0 || softwareID > maxSoftwareID)
+				softwareID = ++maxSoftwareID;
+			if(locationID < 0 || locationID > maxLocationID)
+				locationID = ++maxLocationID;
+		}catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Error: " + e);
+		}
+		try{
+			query = "update Located_in,Software,Location";
+			query = query + "set  approved = ?  ";
+			query = query + "WHERE Located_in.soft_id = Software.id_software AND Located_in.loc_id = Location.id_location ";
+			st = con.prepareStatement(query);
+			st.clearParameters();
+			st.setString(1,"Yes");
+			st.execute();
+		}catch(SQLException e){
+			e.printStackTrace();
+			System.out.println("Error: " + e);
+		}
+	}//***************************************************************************************
+	// this deletes the selected entry form the database
+	public void deleteFromDatabase(){
+
+
+	}//***************************************************************************************
+	// populates the database when the program is first executed
+	public void populateDatbaseTable(){
+		PreparedStatement st;
+		ResultSet rs;
+		String query;
+		int temp; // used to help  create the maxLocationID and maxDatabaseID
+
 		try {
-			con = DriverManager.getConnection("jdbc:mysql://johnny.heliohost.org/fsubism_softwareFinder"
-					,"fsubism_user","fsu-admin");
 			query = "select * from Located_in L, Software S, Location O ";
-			query = query + "where L.soft_id = S.id_software AND L.loc_id = O.id_location";
+			query = query + "where L.soft_id = S.id_software AND L.loc_id = O.id_location AND S.approved = 'Yes'";
 			st = con.prepareStatement(query);
 			rs = st.executeQuery();
 			while(rs.next()){
 				dbData = new Vector<Object>();
+				temp = rs.getInt("soft_id");
+				if(temp > maxSoftwareID)
+					maxSoftwareID = temp;
+				temp = rs.getInt("loc_id");
+				if(temp > maxLocationID)
+					maxLocationID = temp;
 				dbData.addElement(rs.getString("software_name"));
 				dbData.addElement(rs.getString("building"));
 				dbData.addElement(rs.getString("room"));
@@ -262,27 +403,28 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener, Mous
 			System.out.println("Error: " + e);
 		}
 	}//***************************************************************************************
-	void populaterequestTable(){
-		Connection con;
+	// populates the requesttable when the program is first executed
+	public void populateRequestTable(){
 		PreparedStatement st;
 		ResultSet rs;
 		String query;
-		int requestCount;
+		int requestCount;// used for the request cound in the request table
+		int temp;// used to help  create the maxLocationID and maxDatabaseID
+
 		try {
-			Class.forName("com.mysql.jdbc.Driver");
-		} catch(Exception e){
-			e.printStackTrace();
-			System.out.println("Error: " + e);
-		}
-		try {
-			con = DriverManager.getConnection("jdbc:mysql://johnny.heliohost.org/fsubism_softwareFinder"
-					,"fsubism_user","fsu-admin");
-			query = "select * from Located_in L, Software S, Location O, Requests R ";
+			query = "select *";
+			query = query +  " from Located_in L, Software S, Location O, Requests R ";
 			query = query + "where L.soft_id = S.id_software AND L.loc_id = O.id_location AND L.req_id = R.id_request";
 			st = con.prepareStatement(query);
 			rs = st.executeQuery();
 			while(rs.next()){
 				rData = new Vector<Object>();
+				temp = rs.getInt("soft_id");
+				if(temp > maxSoftwareID)
+					maxSoftwareID = temp;
+				temp = rs.getInt("loc_id");
+				if(temp > maxLocationID)
+					maxLocationID = temp;
 				rData.addElement(rs.getString("software_name"));
 				rData.addElement(rs.getString("building"));
 				rData.addElement(rs.getString("room"));
@@ -294,97 +436,43 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener, Mous
 			e.printStackTrace();
 			System.out.println("Error: " + e);
 		}
+		rT.getRowSorter().toggleSortOrder(3);// used to sort the count column in asending order
+		rT.getRowSorter().toggleSortOrder(3);// used again to sort in desending order
 	}//***************************************************************************************
-	void sort(){
-		System.out.println("SORT" );
-		if(softwareField.getText().equals("") && buildingField.getText().equals("") && roomField.getText().equals("")){
-            sorter.setRowFilter(null);
-
-		}else if(!(softwareField.getText().equals("")) && buildingField.getText().equals("")
-				&& roomField.getText().equals("")){
-			String text = softwareField.getText();
-			sorter.setRowFilter(RowFilter.regexFilter("^" + text));
-		}else if(!(softwareField.getText().equals("")) && !(buildingField.getText().equals(""))
-				&& roomField.getText().equals("")){
-			String text = buildingField.getText();
-			sorter.setRowFilter(RowFilter.regexFilter(text));
-		}else if(!(softwareField.getText().equals("")) && !(buildingField.getText().equals(""))
-				&& !(roomField.getText().equals(""))){
-			String text = roomField.getText();
-			sorter.setRowFilter(RowFilter.regexFilter(text));
-		}
-	}//***************************************************************************************
-	void setupMainFrame(){
+	// used to setup mainframe dimensions and size and close operations
+	public void setupMainFrame(){
 		Toolkit  tk;
 		Dimension d;
+
 		tk = Toolkit.getDefaultToolkit();
 		d = tk.getScreenSize();
-		setMinimumSize(new Dimension(1000,650));
-		setMaximumSize(new Dimension(1000,650));
-		setLocation(d.width/4,d.height/4);
+		setSize(d.width/2, d.height/2);
+		setMaximumSize(new Dimension(1400,800));
+		setLocation(d.width/8,d.height/8);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setTitle("Software Database");
-		toFront();
 		setVisible(true);
 	}//***************************************************************************************
+	// handles button presses
 	public void actionPerformed(ActionEvent e){
-		if(e.getSource() == searchButton){
-			/*if(softwareField.getText().equals("") && buildingField.getText().equals("") && roomField.getText().equals("")){
-	               sorter.setRowFilter(null);
-	  
-			}else if(!(softwareField.getText().equals("")) && buildingField.getText().equals("")
-					&& roomField.getText().equals("")){
-				String text = softwareField.getText();
-				try {
-					sorter.setRowFilter(RowFilter.regexFilter(text));
-				}catch(PatternSyntaxException pse) {
-					System.err.println("Bad regex pattern");
-				}
-			}else if(softwareField.getText().equals("") && !(buildingField.getText().equals(""))
-					&& roomField.getText().equals("")){
-				String text = buildingField.getText();
-				try {
-					sorter.setRowFilter(RowFilter.regexFilter(text));
-				}catch(PatternSyntaxException pse) {
-					System.err.println("Bad regex pattern");
-				}
-			}else if(softwareField.getText().equals("") && buildingField.getText().equals("")
-					&& !(roomField.getText().equals(""))){
-				String text = roomField.getText();
-				try {
-					sorter.setRowFilter(RowFilter.regexFilter(text));
-				}catch(PatternSyntaxException pse) {
-					System.err.println("Bad regex pattern");
-				}
-			}else if(!(softwareField.getText().equals("")) && !(buildingField.getText().equals(""))
-					&& roomField.getText().equals("")){
-				/*
-				 * filter based on software and building
-				 
-			}else if(!(softwareField.getText().equals("")) && buildingField.getText().equals("")
-					&& !(roomField.getText().equals(""))){
-				/*
-				 * filter based on software and room
-				 
-			}
-			else if(softwareField.getText().equals("") && !(buildingField.getText().equals(""))
-					&& !(roomField.getText().equals(""))){
-				/*
-				 * filter based on building and room
-				 
-			}*/
-		}else if(e.getSource() == addButton){
+		if(e.getSource() == addButton){
+			// all textfields have data then add otherwise do nothing
 			if(!(softwareField.getText().equals("")) && !(buildingField.getText().equals(""))
 				&& !(roomField.getText().equals(""))){
-				addRowFromTextFields();
+
+				addRowFromTextFields();// called to add to database from text fields data
+				// after add set text fields blank
 				softwareField.setText("");
 				buildingField.setText("");
 				roomField.setText("");
 			}
 		}else if(e.getSource() == removeButton){
-			int requestRow = rT.getSelectedRow();
-			int databaseRow = dbT.getSelectedRow();
+			int requestRow = rT.getSelectedRow(); //used to delete from request table
+			int databaseRow = dbT.getSelectedRow();// used to delete from database table
+
+			//checks to see if a row was selected in the request table
 			if(requestRow > -1){
+				 // joptionpane used to check if user wants to add to databse before deleteing
 				 int reply = JOptionPane.showConfirmDialog(null, "Would you like to add row to database?",
 						 "", JOptionPane.YES_NO_OPTION);
 				 if(reply == JOptionPane.YES_OPTION){
@@ -393,34 +481,56 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener, Mous
 					 rT.clearSelection();
 					 rT.repaint();
 				 }else {
+					 deleteFromDatabase();// used to delete it from databse
 					 rRows.remove(rT.getSelectedRow());
 					 rT.clearSelection();
 					 rT.repaint();
 				 }
+			// checks if databse table was selected if so the delete
 			}else if(databaseRow > -1){
 				dbRows.remove(dbT.getSelectedRow());
 				dbT.clearSelection();
 				dbT.repaint();
+				deleteFromDatabase();// used to delete form databse
 			}
 		}else if(e.getSource() == logoutButton){
 			this.dispose();
 		}
 	}//***************************************************************************************
+	// have to have but not used
 	public void changedUpdate(DocumentEvent e){
+
 	}//***************************************************************************************
+	// used to filter databse based on the software field upon inserting text in the software text field
 	public void insertUpdate(DocumentEvent e){
-		sort();
+		String text = softwareField.getText();
+
+		if(text.length() == 0){
+			sorter.setRowFilter(null);
+		}else{
+			sorter.setRowFilter(RowFilter.regexFilter(text));
+		}
 	}//***************************************************************************************
+	// used to sort based on the text entered in the softwaretextfield upon removeing text from the field
 	public void removeUpdate(DocumentEvent e){
-		sort();
+		String text = softwareField.getText();
+
+		if(text.length() == 0){
+			sorter.setRowFilter(null);
+		}else{
+			sorter.setRowFilter(RowFilter.regexFilter(text));
+		}
 	}//***************************************************************************************
+	// used to keep track of certain mouse clicks
 	public void mouseClicked(MouseEvent e) {
+		// if the source of the click is the request table then unselect from the databse
 		if(e.getSource() == rT){
 			int databaseRow = dbT.getSelectedRow();
 			if(databaseRow > -1){
 				dbT.clearSelection();
 			}
 		}
+		// if the source of the click was the databse then unselect in the request table
 		if(e.getSource() == dbT){
 			int requestRow = rT.getSelectedRow();
 			if(requestRow > -1){
@@ -428,6 +538,7 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener, Mous
 			}
 		}
 	}//***************************************************************************************
+	// need the next 4 but are not used
 	public void mouseEntered(MouseEvent e) {
 	}//***************************************************************************************
 	public void mouseExited(MouseEvent e) {
