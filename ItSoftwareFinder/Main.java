@@ -244,18 +244,34 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener, Mous
 	}//***************************************************************************************
 	// used to add request to the database executed when the remove button is pressed and the user clicks yes on joptionpane
 	// also adds to the database table
-	public void addRowFromRequest(){
-		String software = rTM.getValueAt(rT.getSelectedRow(), 0).toString();
-		String building = rTM.getValueAt(rT.getSelectedRow(), 1).toString();
-		String room = rTM.getValueAt(rT.getSelectedRow(), 2).toString();
+	public void addRowFromRequest(int requestRow){
+		String software;
+		String building;
+		String room;
+		String []split;
+		String temp;
+		Object rD;
+
+		rD = rRows.elementAt(requestRow);
+		split = rD.toString().split(",");
+		software = split[0].substring(1).trim();
+		System.out.println(software);
+		building = split[1].trim();
+		System.out.println(building);
+		temp = split[2];
+		room = temp.substring(0, temp.length() - 1).trim();
+		System.out.println(room);
 
 		dbData = new Vector<Object>();
 		dbData.addElement(software);
+		System.out.println(software);
 		dbData.addElement(building);
+		System.out.println(building);
 		dbData.addElement(room);
+		System.out.println(room);
 		dbRows.addElement(dbData);
 		dbT.repaint();
-		//updateDatabase(software, building, room);// call to update the database
+		updateDatabase(software, building, room);// call to update the database
 	}//***************************************************************************************
 	// used to add entries to the database based on the text fields executed when the add button is pressed
 	// also add to the database table
@@ -270,9 +286,9 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener, Mous
 		dbData.addElement(room);
 		dbRows.addElement(dbData);
 		dbT.repaint();
-		//insertIntoDatabase(software, building, room);// call to update database
+		insertIntoDatabase(software, building, room);// call to update database
 	}//***************************************************************************************
-	// this add to the database if the add is pressed and the textfields have data
+	// adds to the database if the add button is pressed and the textfields have data
 	public void insertIntoDatabase(String software, String building, String room){
 		PreparedStatement st;
 		ResultSet rs;
@@ -281,8 +297,8 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener, Mous
 		int softwareID = ++maxSoftwareID;
 
 		try{
-			query = "insert into Located_in(soft_id, loc_id, req_id) ";
-			query = query + "values(" + softwareID + "," + locationID + ", '')";
+			query = "insert into Located_in(soft_id, loc_id) ";
+			query = query + "values(" + softwareID + "," + locationID + ")";
 			st = con.prepareStatement(query);
 			st.execute();
 
@@ -451,13 +467,13 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener, Mous
 				&& !(roomField.getText().equals(""))){
 
 				addRowFromTextFields();// called to add to database from text fields data
-				// after add set text fields blank
+									   // after add set text fields blank
 				softwareField.setText("");
 				buildingField.setText("");
 				roomField.setText("");
 			}
 		}else if(e.getSource() == removeButton){
-			int requestRow = rT.getSelectedRow(); //used to delete from request table
+			int requestRow = rT.getRowSorter().convertRowIndexToModel(rT.getSelectedRow()); //used to delete from request table
 			int databaseRow = dbT.getSelectedRow();// used to delete from database table
 
 			//checks to see if a row was selected in the request table
@@ -466,17 +482,20 @@ class MainFrame extends JFrame implements ActionListener, DocumentListener, Mous
 				int reply = JOptionPane.showConfirmDialog(null, "Would you like to add row to database?",
 					 "", JOptionPane.YES_NO_OPTION);
 				if(reply == JOptionPane.YES_OPTION){
-					addRowFromRequest();
+					addRowFromRequest(requestRow);
+					rRows.remove(rT.getRowSorter().convertRowIndexToModel(rT.getSelectedRow()));
+					rT.clearSelection();
+					rT.repaint();
 				}else {
-					// deleteFromDatabase("request");// used to delete it from databse
-					rRows.remove(rT.getSelectedRow());
+					deleteFromDatabase("request");// used to delete it from database
+					rRows.remove(rT.getRowSorter().convertRowIndexToModel(rT.getSelectedRow()));
 					rT.clearSelection();
 					rT.repaint();
 				}
 			// checks if databse table was selected if so the delete
 			}else if(databaseRow > -1){
-				//deleteFromDatabase("database");// used to delete form databse
-				dbRows.remove(dbT.getSelectedRow());
+				deleteFromDatabase("database");// used to delete from database
+				dbRows.remove(dbT.getRowSorter().convertRowIndexToModel(dbT.getSelectedRow()));
 				dbT.clearSelection();
 				dbT.repaint();
 			}
